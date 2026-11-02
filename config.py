@@ -12,6 +12,7 @@ EVENTS_DIR.mkdir(exist_ok=True)
 GLOBAL_DIR.mkdir(exist_ok=True)
 
 GLOBAL_USERS_FILE = GLOBAL_DIR / "users.json"
+GLOBAL_SETTINGS_FILE = GLOBAL_DIR / "settings.json"
 APP_TITLE = "🔥 Calculadora & Gestão de Churrasco"
 DEFAULT_EXCEL_FILE = BASE_DIR / "Gastos com churrasco - 3º ELE 2025.xlsx"
 

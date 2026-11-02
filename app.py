@@ -27,9 +27,7 @@ from ui.tasks_view import render_tasks
 def main():
     # Inicializa sessão e banco de dados inicial (com importação do Excel histórico)
     init_session_state()
-    initial_event_id = bootstrap_demo_event_if_needed()
-    if not st.session_state.get("active_event_id"):
-        st.session_state["active_event_id"] = initial_event_id
+    bootstrap_demo_event_if_needed()
 
     # Barra superior com usuário logado e seletor de eventos
     render_user_header()

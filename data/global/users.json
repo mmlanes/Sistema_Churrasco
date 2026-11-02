@@ -1,86 +1,87 @@
 {
   "admin": {
-    "username": "admin",
     "name": "Administrador Master",
     "role": "master",
-    "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
-    "plain_password": "admin123",
     "email": "admin@churrasco.local",
     "active": true,
+    "username": "admin",
+    "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
     "allowed_events": [
       "*"
-    ]
-  },
-  "matusalem": {
-    "username": "matusalem",
-    "name": "Matusalém",
-    "role": "master",
-    "password_hash": "460775fcfe1f0e2c795f957744f68a81e9237aa71b1b49f5b799d5e70bfa8995",
-    "plain_password": "matu123",
-    "email": "matusalem@churrasco.local",
-    "active": true,
-    "allowed_events": [
-      "*"
-    ]
-  },
-  "manuela": {
-    "username": "manuela",
-    "name": "Manuela",
-    "role": "colaborador",
-    "password_hash": "b1cbc169dbb6ad6dc4e3e2720365ee18715db395dfaad57533b59afe0c76eb38",
-    "plain_password": "manu123",
-    "email": "manuela@churrasco.local",
-    "active": true,
-    "allowed_events": [
-      "churrasco_3_ele_2025"
-    ]
-  },
-  "marcelle": {
-    "username": "marcelle",
-    "name": "Marcelle",
-    "role": "colaborador",
-    "password_hash": "0f9da056e553b7b796cbe0b27c63eaef469bbd9eafbdf20473f2934e3e50c4e5",
-    "plain_password": "marcelle123",
-    "email": "marcelle@churrasco.local",
-    "active": true,
-    "allowed_events": [
-      "churrasco_3_ele_2025"
-    ]
+    ],
+    "plain_password": "admin123",
+    "last_event_id": "churrasco_3_ele_2026"
   },
   "julia": {
-    "username": "julia",
     "name": "Júlia Marinho",
     "role": "colaborador",
-    "password_hash": "cdbd41d016cdec10d0ff2291a6bdae398b565a831622bedcd4dcafa69252b5e7",
-    "plain_password": "julia123",
     "email": "julia@churrasco.local",
     "active": true,
+    "username": "julia",
+    "password_hash": "cdbd41d016cdec10d0ff2291a6bdae398b565a831622bedcd4dcafa69252b5e7",
     "allowed_events": [
       "churrasco_3_ele_2025"
-    ]
+    ],
+    "plain_password": "julia123"
+  },
+  "manuela": {
+    "name": "Manuela",
+    "role": "colaborador",
+    "email": "manuela@churrasco.local",
+    "active": true,
+    "username": "manuela",
+    "password_hash": "b1cbc169dbb6ad6dc4e3e2720365ee18715db395dfaad57533b59afe0c76eb38",
+    "allowed_events": [
+      "churrasco_3_ele_2025"
+    ],
+    "plain_password": "manu123"
+  },
+  "marcelle": {
+    "name": "Marcelle",
+    "role": "colaborador",
+    "email": "marcelle@churrasco.local",
+    "active": true,
+    "username": "marcelle",
+    "password_hash": "0f9da056e553b7b796cbe0b27c63eaef469bbd9eafbdf20473f2934e3e50c4e5",
+    "allowed_events": [
+      "churrasco_3_ele_2025"
+    ],
+    "plain_password": "marcelle123"
   },
   "convidado": {
-    "username": "convidado",
     "name": "Convidado / Visualizador (ELE 2025)",
     "role": "visualizador",
-    "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-    "plain_password": "1234",
     "email": "convidado@churrasco.local",
     "active": true,
+    "username": "convidado",
+    "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "allowed_events": [
       "churrasco_3_ele_2025"
-    ]
+    ],
+    "plain_password": "1234"
+  },
+  "matusalem": {
+    "name": "Matusalém",
+    "role": "master",
+    "email": "matusalem@churrasco.local",
+    "active": true,
+    "username": "matusalem",
+    "password_hash": "460775fcfe1f0e2c795f957744f68a81e9237aa71b1b49f5b799d5e70bfa8995",
+    "allowed_events": [
+      "*"
+    ],
+    "plain_password": "matu123"
   },
   "convidado2026": {
-    "username": "convidado2026",
     "name": "Convidado / Visualizador (ELE 2026)",
     "role": "visualizador",
-    "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-    "plain_password": "1234",
     "email": "convidado2026@churrasco.local",
     "active": true,
+    "username": "convidado2026",
+    "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "allowed_events": [
       "churrasco_3_ele_2026"
-    ]
+    ],
+    "plain_password": "1234"
   }
 }

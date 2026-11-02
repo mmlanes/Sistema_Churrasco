@@ -2,6 +2,7 @@ import streamlit as st
 from services.event_service import (
     list_events,
     list_events_for_user,
+    get_initial_event_id,
     create_event,
     clone_event,
     get_event,
@@ -9,6 +10,22 @@ from services.event_service import (
     delete_event
 )
 from ui.auth_view import can_edit, is_master
+
+
+def record_event_access(user: dict, event_id: str) -> None:
+    """Registra o evento como o último acessado pelo usuário e pelo sistema."""
+    if not event_id:
+        return
+    username = user.get("username")
+    if username and user.get("last_event_id") != event_id:
+        user["last_event_id"] = event_id
+        from services.auth_service import set_user_last_event
+        set_user_last_event(username, event_id)
+
+    if st.session_state.get("_cached_system_last_event") != event_id:
+        st.session_state["_cached_system_last_event"] = event_id
+        from services.storage_service import set_system_last_event
+        set_system_last_event(event_id)
 
 
 def render_event_selector() -> str:
@@ -24,16 +41,31 @@ def render_event_selector() -> str:
     event_names = {e["id"]: f"📅 {e['name']} ({e.get('date', '')})" for e in events}
 
     current_id = st.session_state.get("active_event_id")
-    if current_id not in event_ids:
-        current_id = event_ids[0]
+    if not current_id or current_id not in event_ids:
+        current_id = get_initial_event_id(current_user)
+        if not current_id or current_id not in event_ids:
+            current_id = event_ids[0]
         st.session_state["active_event_id"] = current_id
         st.session_state["event_selector_box"] = current_id
+
+    # Sincroniza query parameter no navegador
+    try:
+        if st.query_params.get("event") != current_id:
+            st.query_params["event"] = current_id
+    except Exception:
+        pass
 
     # REGRA: Login de Visualização permite ver apenas o seu único evento associado
     if current_user.get("role") == "visualizador":
         chosen_id = events[0]["id"]
         st.session_state["active_event_id"] = chosen_id
         st.session_state["event_selector_box"] = chosen_id
+        try:
+            if st.query_params.get("event") != chosen_id:
+                st.query_params["event"] = chosen_id
+        except Exception:
+            pass
+        record_event_access(current_user, chosen_id)
         st.markdown(
             f"<div style='background: rgba(127,127,127,0.08); padding: 8px 14px; border-radius: 6px; font-size: 0.95rem;'>"
             f"🎯 <b>Evento Autorizado:</b> 📅 <b>{events[0]['name']}</b> ({events[0].get('date', '')}) &nbsp;|&nbsp; <i>(Acesso exclusivo a este evento)</i></div>",
@@ -65,7 +97,15 @@ def render_event_selector() -> str:
         )
         if chosen_id != current_id:
             st.session_state["active_event_id"] = chosen_id
+            st.session_state["event_selector_box"] = chosen_id
+            try:
+                st.query_params["event"] = chosen_id
+            except Exception:
+                pass
+            record_event_access(current_user, chosen_id)
             st.rerun()
+        else:
+            record_event_access(current_user, chosen_id)
 
     if can_edit():
         with col2:
@@ -89,6 +129,11 @@ def render_event_selector() -> str:
                         )
                         st.session_state["active_event_id"] = ev["id"]
                         st.session_state["event_selector_box"] = ev["id"]
+                        try:
+                            st.query_params["event"] = ev["id"]
+                        except Exception:
+                            pass
+                        record_event_access(current_user, ev["id"])
                         unlocked = st.session_state.setdefault("unlocked_events", set())
                         unlocked.add(ev["id"])
                         st.success(f"Evento '{new_name}' criado com sucesso!")
@@ -135,6 +180,11 @@ def render_event_selector() -> str:
                         )
                         st.session_state["active_event_id"] = ev["id"]
                         st.session_state["event_selector_box"] = ev["id"]
+                        try:
+                            st.query_params["event"] = ev["id"]
+                        except Exception:
+                            pass
+                        record_event_access(current_user, ev["id"])
                         unlocked = st.session_state.setdefault("unlocked_events", set())
                         unlocked.add(ev["id"])
                         st.success(f"Novo evento '{clone_name}' clonado com sucesso com isolamento total!")
@@ -179,6 +229,12 @@ def render_event_selector() -> str:
                                 next_id = remaining[0] if remaining else None
                                 st.session_state["active_event_id"] = next_id
                                 st.session_state["event_selector_box"] = next_id
+                                if next_id:
+                                    try:
+                                        st.query_params["event"] = next_id
+                                    except Exception:
+                                        pass
+                                    record_event_access(current_user, next_id)
                                 st.rerun()
                             else:
                                 st.error("Não foi possível excluir o evento.")

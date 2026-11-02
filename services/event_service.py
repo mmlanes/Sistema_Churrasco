@@ -78,6 +78,52 @@ def list_events_for_user(user: dict) -> List[Dict[str, Any]]:
     return [e for e in all_events if e["id"] in allowed]
 
 
+def get_initial_event_id(user: Optional[dict] = None) -> str:
+    """
+    Determina o evento a ser selecionado quando o usuário acessa o sistema.
+    Prioridades:
+    1. Query param da URL (st.query_params['event']), se válido e permitido.
+    2. Último evento acessado pelo usuário (user['last_event_id']).
+    3. Último evento acessado globalmente no sistema (settings.json / Supabase).
+    4. Primeiro evento disponível/autorizado.
+    """
+    user = user or {}
+    user_events = list_events_for_user(user)
+    if not user_events:
+        return ""
+
+    user_event_ids = [e["id"] for e in user_events]
+
+    # 1. URL Query Param
+    try:
+        import streamlit as st
+        qp_ev = st.query_params.get("event")
+        if qp_ev and qp_ev in user_event_ids:
+            return qp_ev
+    except Exception:
+        pass
+
+    # 2. Último evento acessado pelo usuário
+    user_last = user.get("last_event_id")
+    if not user_last and user.get("username"):
+        from services.auth_service import get_user_last_event
+        user_last = get_user_last_event(user["username"])
+    if user_last and user_last in user_event_ids:
+        return user_last
+
+    # 3. Último evento acessado globalmente
+    try:
+        from services.storage_service import get_system_last_event
+        sys_last = get_system_last_event()
+        if sys_last and sys_last in user_event_ids:
+            return sys_last
+    except Exception:
+        pass
+
+    # 4. Primeiro evento disponível
+    return user_event_ids[0]
+
+
 def get_event(event_id: str) -> Optional[Dict[str, Any]]:
     meta_file = get_event_dir(event_id) / "meta.json"
     if meta_file.exists():

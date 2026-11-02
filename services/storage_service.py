@@ -36,6 +36,8 @@ def _parse_event_and_doc(file_path: Path):
         resolved = file_path.resolve()
         if resolved.name == "users.json":
             return "__global__", "users"
+        if resolved.name == "settings.json":
+            return "__global__", "settings"
         
         parts = resolved.parts
         # Procura por "events" no caminho
@@ -136,3 +138,26 @@ def get_audit_logs(event_id: str) -> List[Dict[str, Any]]:
     log_file = get_event_dir(event_id) / "audit_log.json"
     local_logs = read_json(log_file, default=[])
     return list(reversed(local_logs))
+
+
+def get_system_last_event() -> Optional[str]:
+    """Retorna o ID do último evento acessado globalmente no sistema."""
+    from config import GLOBAL_SETTINGS_FILE
+    data = read_json(GLOBAL_SETTINGS_FILE, default={})
+    if isinstance(data, dict):
+        return data.get("last_accessed_event_id")
+    return None
+
+
+def set_system_last_event(event_id: str) -> None:
+    """Registra o último evento acessado no sistema global."""
+    if not event_id:
+        return
+    from config import GLOBAL_SETTINGS_FILE
+    data = read_json(GLOBAL_SETTINGS_FILE, default={})
+    if not isinstance(data, dict):
+        data = {}
+    if data.get("last_accessed_event_id") != event_id:
+        data["last_accessed_event_id"] = event_id
+        data["updated_at"] = datetime.now().isoformat()
+        write_json(GLOBAL_SETTINGS_FILE, data)

@@ -51,6 +51,12 @@ def render_user_header():
                     "role": "visualizador",
                     "allowed_events": ["churrasco_3_ele_2025"]
                 }
+                st.session_state["active_event_id"] = None
+                st.session_state.pop("event_selector_box", None)
+                try:
+                    st.query_params.clear()
+                except Exception:
+                    pass
                 st.rerun()
 
 
@@ -64,6 +70,26 @@ def login_form():
         u = authenticate(username, password)
         if u:
             st.session_state["user"] = u
+            
+            # Restaura imediatamente o último evento acessado por este usuário
+            from services.event_service import list_events_for_user
+            user_events = list_events_for_user(u)
+            user_event_ids = [e["id"] for e in user_events]
+            
+            target_event = None
+            if u.get("last_event_id") and u["last_event_id"] in user_event_ids:
+                target_event = u["last_event_id"]
+            elif user_event_ids:
+                target_event = user_event_ids[0]
+            
+            if target_event:
+                st.session_state["active_event_id"] = target_event
+                st.session_state["event_selector_box"] = target_event
+                try:
+                    st.query_params["event"] = target_event
+                except Exception:
+                    pass
+            
             st.success(f"Bem-vindo(a), {u['name']}!")
             st.rerun()
         else:

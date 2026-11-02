@@ -111,7 +111,8 @@ def authenticate(username: str, password: str) -> Optional[dict]:
                 "name": u["name"],
                 "role": u["role"],
                 "email": u.get("email", ""),
-                "allowed_events": u.get("allowed_events", [])
+                "allowed_events": u.get("allowed_events", []),
+                "last_event_id": u.get("last_event_id")
             }
     return None
 
@@ -178,4 +179,26 @@ def delete_user(username: str) -> bool:
     del users[username]
     write_json(GLOBAL_USERS_FILE, users)
     return True
+
+
+def get_user_last_event(username: str) -> Optional[str]:
+    """Recupera o último evento acessado por um usuário específico."""
+    if not username:
+        return None
+    users = get_all_users()
+    u = users.get(username.strip().lower(), {})
+    return u.get("last_event_id")
+
+
+def set_user_last_event(username: str, event_id: str) -> None:
+    """Atualiza o último evento acessado no registro do usuário."""
+    if not username or not event_id:
+        return
+    users = get_all_users()
+    uname = username.strip().lower()
+    u = users.get(uname)
+    if u:
+        if u.get("last_event_id") != event_id:
+            u["last_event_id"] = event_id
+            write_json(GLOBAL_USERS_FILE, users)
 
