@@ -61,7 +61,7 @@
   },
   "convidado": {
     "username": "convidado",
-    "name": "Convidado / Visualizador",
+    "name": "Convidado / Visualizador (ELE 2025)",
     "role": "visualizador",
     "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "plain_password": "1234",
@@ -69,6 +69,18 @@
     "active": true,
     "allowed_events": [
       "churrasco_3_ele_2025"
+    ]
+  },
+  "convidado2026": {
+    "username": "convidado2026",
+    "name": "Convidado / Visualizador (ELE 2026)",
+    "role": "visualizador",
+    "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "plain_password": "1234",
+    "email": "convidado2026@churrasco.local",
+    "active": true,
+    "allowed_events": [
+      "churrasco_3_ele_2026"
     ]
   }
 }

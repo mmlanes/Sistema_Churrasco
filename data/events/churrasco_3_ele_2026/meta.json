@@ -1,0 +1,13 @@
+{
+  "id": "churrasco_3_ele_2026",
+  "name": "Churrasco 3º ELE 2026",
+  "description": "",
+  "date": "2026-11-30",
+  "created_at": "2026-11-02T12:53:30.279767",
+  "updated_at": "2026-11-02T12:53:30.279767",
+  "created_by": "Matusalém",
+  "access_password": "2026ele",
+  "default_fee_aluno": 25.0,
+  "default_fee_servidor": 25.0,
+  "default_fee_geral": 25.0
+}
