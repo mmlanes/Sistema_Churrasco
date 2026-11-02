@@ -21,6 +21,7 @@ from ui.participants_view import render_participants
 from ui.reports_view import render_reports
 from ui.suggestions_view import render_suggestions
 from ui.suppliers_view import render_suppliers
+from ui.tasks_view import render_tasks
 
 
 def main():
