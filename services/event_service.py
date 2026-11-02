@@ -201,3 +201,21 @@ def verify_event_password(event_id: str, input_password: str) -> bool:
     return input_password.strip() == expected_pwd.strip()
 
 
+def delete_event(event_id: str, user_name: str = "Master") -> bool:
+    """
+    Exclui permanentemente a pasta e os dados do evento selecionado.
+    Devido ao isolamento total de pastas (data/events/{event_id}),
+    a exclusão afeta estritamente este evento, com zero impacto
+    ou dependência em relação a outros eventos do sistema.
+    """
+    events = list_events()
+    if len(events) <= 1:
+        return False  # Garante que sempre reste ao menos 1 evento
+
+    event_dir = get_event_dir(event_id)
+    if event_dir.exists() and event_dir.is_dir():
+        shutil.rmtree(event_dir)
+        return True
+    return False
+
+

@@ -1,10 +1,17 @@
 import streamlit as st
-from services.event_service import list_events, create_event, clone_event, get_event, update_event_password
+from services.event_service import (
+    list_events,
+    create_event,
+    clone_event,
+    get_event,
+    update_event_password,
+    delete_event
+)
 from ui.auth_view import can_edit, is_master
 
 
 def render_event_selector() -> str:
-    """Renderiza a seleção do evento ativo no topo ou sidebar, com opções de criação, clonagem e gestão de senha."""
+    """Renderiza a seleção do evento ativo no topo ou sidebar, com opções de criação, clonagem, gestão de senha e exclusão."""
     events = list_events()
     if not events:
         st.warning("Nenhum evento encontrado.")
@@ -20,9 +27,9 @@ def render_event_selector() -> str:
 
     selected_index = event_ids.index(current_id)
 
-    # Colunas: Seletor, Novo, Clonar, Senha (se Master)
+    # Colunas: Seletor, Novo, Clonar, Senha e Exclusão (se Master)
     if is_master():
-        col1, col2, col3, col4 = st.columns([3.2, 1.1, 1.1, 1.4])
+        col1, col2, col3, col4, col5 = st.columns([2.8, 1.1, 1.1, 1.3, 0.9])
     else:
         col1, col2, col3 = st.columns([4, 1.2, 1.2])
 
@@ -113,10 +120,10 @@ def render_event_selector() -> str:
                     else:
                         st.error("Informe o nome para o novo evento.")
 
-    # Se for Master, exibe botão de visualização e edição da senha geral do evento
+    # Se for Master, exibe botão de visualização/edição de senha e botão de exclusão
     if is_master():
+        curr_event = get_event(chosen_id) or {}
         with col4:
-            curr_event = get_event(chosen_id) or {}
             curr_pwd = curr_event.get("access_password", "churras2025")
             with st.popover("🔐 Senha do Evento"):
                 st.subheader("Senha Geral do Evento")
@@ -132,6 +139,27 @@ def render_event_selector() -> str:
                         st.rerun()
                     else:
                         st.error("A senha não pode ser vazia.")
+
+        with col5:
+            with st.popover("🗑️ Excluir"):
+                st.subheader(f"Excluir Evento '{curr_event.get('name')}'")
+                st.caption("⚠️ Esta ação apagará apenas a pasta deste evento (`data/events/`). Devido ao isolamento total, nenhum outro evento será afetado.")
+                if len(events) <= 1:
+                    st.warning("Não é possível excluir o único evento existente no sistema.")
+                else:
+                    confirm_text = st.text_input("Digite 'EXCLUIR' para confirmar:", key=f"confirm_del_{chosen_id}")
+                    if st.button("Confirmar Exclusão Definitiva", type="primary", use_container_width=True):
+                        if confirm_text.strip().upper() == "EXCLUIR":
+                            user_name = st.session_state.get("user", {}).get("name", "Master")
+                            if delete_event(chosen_id, user_name):
+                                st.success(f"Evento '{curr_event.get('name')}' excluído com sucesso!")
+                                remaining = [e["id"] for e in list_events()]
+                                st.session_state["active_event_id"] = remaining[0] if remaining else None
+                                st.rerun()
+                            else:
+                                st.error("Não foi possível excluir o evento.")
+                        else:
+                            st.error("Digite 'EXCLUIR' exatamente para prosseguir.")
 
     return st.session_state.get("active_event_id", "")
 
