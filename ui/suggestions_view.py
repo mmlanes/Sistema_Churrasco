@@ -37,13 +37,13 @@ def render_suggestions(event_id: str):
                 with st.container():
                     st.markdown(
                         f"""
-                        <div style="border-left: 5px solid {border_color}; background-color: #F9FAFB; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="border-left: 5px solid {border_color}; background: rgba(127, 127, 127, 0.12); color: inherit; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; border-top: 1px solid rgba(127,127,127,0.15); border-right: 1px solid rgba(127,127,127,0.15); border-bottom: 1px solid rgba(127,127,127,0.15);">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-weight:bold; color:#1F2937;">👤 {s.get('author', 'Anônimo')} <span style="font-size:0.8rem; color:#6B7280;">({s.get('created_at', '')})</span></span>
+                                <span style="font-weight:bold; color:inherit;">👤 {s.get('author', 'Anônimo')} <span style="font-size:0.8rem; opacity:0.75;">({s.get('created_at', '')})</span></span>
                                 <span style="font-size:0.8rem; font-weight:bold; color:{border_color};">{badge}</span>
                             </div>
-                            <p style="margin: 8px 0; color:#374151; font-size: 0.95rem;">{s.get('text')}</p>
-                            {f"<div style='background-color:#EBF5FF; border-left:3px solid #3B82F6; padding:6px 10px; margin-top:6px; border-radius:4px; font-size:0.85rem; color:#1E40AF;'><b>Resposta da Organização:</b> {s.get('admin_response')}</div>" if s.get('admin_response') else ""}
+                            <p style="margin: 8px 0; color:inherit; font-size: 0.95rem;">{s.get('text')}</p>
+                            {f"<div style='background: rgba(59, 130, 246, 0.15); border-left:3px solid #3B82F6; padding:6px 10px; margin-top:6px; border-radius:4px; font-size:0.85rem; color:inherit;'><b>Resposta da Organização:</b> {s.get('admin_response')}</div>" if s.get('admin_response') else ""}
                         </div>
                         """,
                         unsafe_allow_html=True

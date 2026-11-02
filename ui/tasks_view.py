@@ -55,19 +55,19 @@ def render_tasks(event_id: str):
                 with st.container():
                     st.markdown(
                         f"""
-                        <div style="border-left: 6px solid {color_border}; background-color: #F9FAFB; padding: 14px 18px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="border-left: 6px solid {color_border}; background: rgba(127, 127, 127, 0.12); color: inherit; padding: 14px 18px; border-radius: 8px; margin-bottom: 12px; border-top: 1px solid rgba(127,127,127,0.15); border-right: 1px solid rgba(127,127,127,0.15); border-bottom: 1px solid rgba(127,127,127,0.15);">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <h4 style="margin:0; color:#111827;">{t.get('title')}</h4>
+                                <h4 style="margin:0; color:inherit;">{t.get('title')}</h4>
                                 <span style="font-size:0.85rem; font-weight:bold; color:{color_border};">{badge}</span>
                             </div>
-                            <p style="margin: 6px 0; color:#4B5563;">{t.get('description', '')}</p>
-                            <div style="font-size:0.9rem; color:#374151;">
+                            <p style="margin: 6px 0; color:inherit; opacity: 0.9;">{t.get('description', '')}</p>
+                            <div style="font-size:0.9rem; color:inherit; opacity: 0.85;">
                                 <b>Responsável:</b> {t.get('assigned_to', 'Não atribuído')} &nbsp;|&nbsp;
                                 <b>Prazo:</b> {t.get('deadline', 'Sem data')} &nbsp;|&nbsp;
                                 <b>Orçado:</b> R$ {float(t.get('budget', 0)):.2f} &nbsp;|&nbsp;
                                 <b>Gasto Real:</b> R$ {float(t.get('actual_spent', 0)):.2f}
                             </div>
-                            {f"<div style='margin-top:6px; font-size:0.85rem; color:#6B7280;'><i>Observações:</i> {t.get('notes')}</div>" if t.get('notes') else ""}
+                            {f"<div style='margin-top:6px; font-size:0.85rem; color:inherit; opacity:0.75;'><i>Observações:</i> {t.get('notes')}</div>" if t.get('notes') else ""}
                         </div>
                         """,
                         unsafe_allow_html=True

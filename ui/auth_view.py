@@ -23,18 +23,18 @@ def render_user_header():
     
     with col1:
         if role == "master":
-            badge = "👑 **ORGANIZADOR MASTER**"
-            color = "#1E3A8A"
+            badge_html = "<span style='color: #60A5FA; font-weight: bold;'>👑 ORGANIZADOR MASTER</span>"
+            border_color = "#3B82F6"
         elif role == "colaborador":
-            badge = "🛠️ **COLABORADOR**"
-            color = "#047857"
+            badge_html = "<span style='color: #34D399; font-weight: bold;'>🛠️ COLABORADOR</span>"
+            border_color = "#10B981"
         else:
-            badge = "👀 **VISUALIZADOR (Somente Leitura)**"
-            color = "#6B7280"
+            badge_html = "<span style='color: #9CA3AF; font-weight: bold;'>👀 VISUALIZADOR (Somente Leitura)</span>"
+            border_color = "#6B7280"
 
         st.markdown(
-            f"<div style='background-color:#F3F4F6; padding:8px 14px; border-radius:8px; border-left: 5px solid {color};'>"
-            f"Conectado como: <b>{user.get('name', 'Convidado')}</b> &nbsp;|&nbsp; Permissão: {badge}</div>",
+            f"<div style='background: rgba(127, 127, 127, 0.12); color: inherit; padding: 10px 16px; border-radius: 8px; border-left: 5px solid {border_color}; border-top: 1px solid rgba(127,127,127,0.2); border-right: 1px solid rgba(127,127,127,0.2); border-bottom: 1px solid rgba(127,127,127,0.2); font-size: 0.95rem; line-height: 1.5;'>"
+            f"Conectado como: <strong>{user.get('name', 'Convidado')}</strong> &nbsp;|&nbsp; Permissão: {badge_html}</div>",
             unsafe_allow_html=True
         )
 
