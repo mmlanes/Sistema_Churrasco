@@ -1,0 +1,177 @@
+[
+  {
+    "id": "rec_vinagrete",
+    "name": "Vinagrete Especial para Churrasco",
+    "category": "Acompanhamentos",
+    "assigned_to": "Manuela",
+    "standard_yield": 3.0,
+    "yield_unit": "kg",
+    "portion_per_person": 0.085,
+    "batch_multiplier": 1.0,
+    "instructions": "Picar tomate, cebola e pimentão em cubos pequenos. Misturar o cheiro verde, temperar com sal, azeite e vinagre.",
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "quantity": 2.0,
+        "unit": "kg",
+        "unit_price": 7.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Cebola branca",
+        "quantity": 0.5,
+        "unit": "kg",
+        "unit_price": 6.0,
+        "package_size": 0.5,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Pimentão verde",
+        "quantity": 0.3,
+        "unit": "kg",
+        "unit_price": 8.0,
+        "package_size": 0.3,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Salsinha fresca",
+        "quantity": 2.0,
+        "unit": "maço",
+        "unit_price": 2.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Cebolinha fresca",
+        "quantity": 2.0,
+        "unit": "maço",
+        "unit_price": 2.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Vinagre de álcool/maçã",
+        "quantity": 0.5,
+        "unit": "L",
+        "unit_price": 6.0,
+        "package_size": 0.5,
+        "supplier_id": "sup_atacadao"
+      }
+    ]
+  },
+  {
+    "id": "rec_farofa",
+    "name": "Farofa Rica com Bacon e Calabresa",
+    "category": "Acompanhamentos",
+    "assigned_to": "Manuela",
+    "standard_yield": 3.0,
+    "yield_unit": "kg",
+    "portion_per_person": 0.085,
+    "batch_multiplier": 1.0,
+    "instructions": "Fritar o bacon e a linguiça calabresa picados com alho e cebola. Adicionar os ovos mexidos. Acrescentar a farofa pronta e misturar bem.",
+    "ingredients": [
+      {
+        "name": "Farofa pronta temperada (400g)",
+        "quantity": 2.0,
+        "unit": "kg",
+        "unit_price": 22.5,
+        "package_size": 0.4,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Cebola picada",
+        "quantity": 0.5,
+        "unit": "kg",
+        "unit_price": 6.0,
+        "package_size": 0.5,
+        "supplier_id": "sup_hortifruti"
+      },
+      {
+        "name": "Bacon em cubos",
+        "quantity": 0.5,
+        "unit": "kg",
+        "unit_price": 40.0,
+        "package_size": 0.5,
+        "supplier_id": "sup_acougue"
+      },
+      {
+        "name": "Linguiça calabresa defumada",
+        "quantity": 0.5,
+        "unit": "kg",
+        "unit_price": 40.0,
+        "package_size": 0.5,
+        "supplier_id": "sup_acougue"
+      },
+      {
+        "name": "Ovos caipiras/brancos",
+        "quantity": 12.0,
+        "unit": "un",
+        "unit_price": 1.0,
+        "package_size": 12.0,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Alho picado",
+        "quantity": 0.1,
+        "unit": "kg",
+        "unit_price": 20.0,
+        "package_size": 0.1,
+        "supplier_id": "sup_hortifruti"
+      }
+    ]
+  },
+  {
+    "id": "rec_torta",
+    "name": "Torta Doce de Maracujá",
+    "category": "Sobremesas",
+    "assigned_to": "Manuela",
+    "standard_yield": 1.0,
+    "yield_unit": "torta",
+    "portion_per_person": 0,
+    "batch_multiplier": 1.0,
+    "instructions": "Bater leite condensado com creme de leite e suco concentrado de maracujá. Montar camadas com biscoito maisena e cobrir com raspas de chocolate.",
+    "ingredients": [
+      {
+        "name": "Leite condensado (lata/caixa)",
+        "quantity": 6.0,
+        "unit": "un",
+        "unit_price": 6.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Creme de leite (caixa)",
+        "quantity": 6.0,
+        "unit": "un",
+        "unit_price": 5.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Suco concentrado de maracujá (200ml)",
+        "quantity": 0.4,
+        "unit": "L",
+        "unit_price": 2.0,
+        "package_size": 0.2,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Biscoito maisena (175g)",
+        "quantity": 6.0,
+        "unit": "pct",
+        "unit_price": 7.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_atacadao"
+      },
+      {
+        "name": "Chocolate meio amargo 100g",
+        "quantity": 0.2,
+        "unit": "un",
+        "unit_price": 1.0,
+        "package_size": 1.0,
+        "supplier_id": "sup_atacadao"
+      }
+    ]
+  }
+]

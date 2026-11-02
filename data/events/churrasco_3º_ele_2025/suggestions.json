@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sug_01",
+    "author": "Aluno Convidado",
+    "user_role": "visualizador",
+    "text": "Sugiro colocar uma opção de refrigerante guaraná zero no próximo churrasco!",
+    "status": "Aceita",
+    "created_at": "2025-12-18 14:30:00",
+    "admin_response": "Ótima sugestão, incluiremos na cota de bebidas do próximo evento."
+  },
+  {
+    "id": "sug_02",
+    "author": "Douglas",
+    "user_role": "colaborador",
+    "text": "Podemos cotar carvão ecológico que faz menos fumaça.",
+    "status": "Analisada",
+    "created_at": "2025-12-18 16:00:00",
+    "admin_response": "Vamos verificar o preço com os fornecedores."
+  }
+]

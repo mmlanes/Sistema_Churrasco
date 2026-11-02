@@ -1,0 +1,47 @@
+[
+  {
+    "id": "sup_atacadao",
+    "name": "Atacadão / Supermercado Central",
+    "category": "Bebidas e Mercearia",
+    "contact": "Atendimento Comercial",
+    "phone": "(11) 4004-0000",
+    "address": "Av. Principal, 1000",
+    "notes": "Melhor preço para Coca-cola, sucos e arroz"
+  },
+  {
+    "id": "sup_acougue",
+    "name": "Açougue Boi de Ouro",
+    "category": "Carnes Nobres",
+    "contact": "Seu Jorge",
+    "phone": "(11) 4123-9988",
+    "address": "Rua do Mercado, 45",
+    "notes": "Alcatra e linguiças frescas fatiadas no capricho"
+  },
+  {
+    "id": "sup_hortifruti",
+    "name": "Hortifruti da Estação",
+    "category": "Hortifruti & Temperos",
+    "contact": "Dona Maria",
+    "phone": "(11) 4222-3344",
+    "address": "Rua das Feiras, 12",
+    "notes": "Tomates maduros, cebolas e cheiro verde frescos"
+  },
+  {
+    "id": "sup_sorvete",
+    "name": "Fábrica e Distribuidora de Picolés Gelabem",
+    "category": "Sobremesas / Gelo",
+    "contact": "Carlos",
+    "phone": "(11) 4333-8877",
+    "address": "Rua Industrial, 30",
+    "notes": "Picolés no atacado a R$ 1,50 cada"
+  },
+  {
+    "id": "sup_descartaveis",
+    "name": "Embalagens & Festas Express",
+    "category": "Descartáveis",
+    "contact": "Renata",
+    "phone": "(11) 4555-6677",
+    "address": "Av. dos Estados, 500",
+    "notes": "Pratos 21cm, copos 300ml e garfos reforçados"
+  }
+]

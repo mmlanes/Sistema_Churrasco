@@ -1,0 +1,51 @@
+[
+  {
+    "id": "c_matu",
+    "name": "Matusalém",
+    "role": "Mestre Churrasqueiro & Compras",
+    "phone": "(11) 98765-4321",
+    "email": "matu@escola.br"
+  },
+  {
+    "id": "c_manu",
+    "name": "Manuela",
+    "role": "Chef de Acompanhamentos (Farofa e Vinagrete)",
+    "phone": "(11) 98888-1111",
+    "email": "manuela@escola.br"
+  },
+  {
+    "id": "c_marcelle",
+    "name": "Marcelle",
+    "role": "Compras de Pão de Alho",
+    "phone": "(11) 97777-2222",
+    "email": "marcelle@escola.br"
+  },
+  {
+    "id": "c_julia",
+    "name": "Júlia Marinho",
+    "role": "Compras de Picolés e Sobremesas",
+    "phone": "(11) 96666-3333",
+    "email": "julia@escola.br"
+  },
+  {
+    "id": "c_douglas",
+    "name": "Douglas",
+    "role": "Apoio e Logística de Descartáveis",
+    "phone": "(11) 95555-4444",
+    "email": "douglas@escola.br"
+  },
+  {
+    "id": "c_venzel",
+    "name": "Venzel",
+    "role": "Recepção e Caixa",
+    "phone": "(11) 94444-5555",
+    "email": "venzel@escola.br"
+  },
+  {
+    "id": "c_laercio",
+    "name": "Laércio",
+    "role": "Logística de Bebidas e Gelo",
+    "phone": "(11) 93333-6666",
+    "email": "laercio@escola.br"
+  }
+]

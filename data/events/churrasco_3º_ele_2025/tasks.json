@@ -1,0 +1,79 @@
+[
+  {
+    "id": "tsk_01",
+    "title": "Preparar Farofa e Vinagrete",
+    "description": "Comprar os ingredientes frescos, picar os legumes e preparar 3kg de Vinagrete e 3kg de Farofa com bacon e calabresa.",
+    "assigned_to": "Manuela",
+    "deadline": "2025-12-18",
+    "status": "Realizada",
+    "budget": 132.4,
+    "actual_spent": 82.66,
+    "notes": "Gastou R$ 82,66. Deduzidos R$ 25 da sua própria cota, gerando PIX de reembolso de R$ 57,66."
+  },
+  {
+    "id": "tsk_02",
+    "title": "Comprar Pão de Alho",
+    "description": "Comprar pacote com 40 unidades de pão de alho na véspera e manter refrigerado.",
+    "assigned_to": "Marcelle",
+    "deadline": "2025-12-17",
+    "status": "Realizada",
+    "budget": 40.0,
+    "actual_spent": 62.0,
+    "notes": "Comprou marca especial de pão de alho recheado no valor de R$ 62,00. Reembolsada integralmente via PIX."
+  },
+  {
+    "id": "tsk_03",
+    "title": "Comprar 110 Picolés na Distribuidora",
+    "description": "Buscar os picolés na fábrica/distribuidora em caixa de isopor com gelo antes do evento.",
+    "assigned_to": "Júlia Marinho",
+    "deadline": "2025-12-18",
+    "status": "Realizada",
+    "budget": 150.0,
+    "actual_spent": 165.0,
+    "notes": "Comprou 110 picolés por R$ 165,00. Reembolsada integralmente via PIX pelo caixa."
+  },
+  {
+    "id": "tsk_04",
+    "title": "Comprar Carnes e Assar Churrasco",
+    "description": "Comprar as carnes no açougue (alcatra, linguiças, frango), temperar e comandar a churrasqueira.",
+    "assigned_to": "Matusalém",
+    "deadline": "2025-12-18",
+    "status": "Realizada",
+    "budget": 185.0,
+    "actual_spent": 574.56,
+    "notes": "Compras divididas em duas etapas (R$ 225,28 + R$ 349,28) suprindo quantidade extra com excelente qualidade."
+  },
+  {
+    "id": "tsk_05",
+    "title": "Comprar Bebidas e Gelo",
+    "description": "Comprar refrigerantes Coca 3L, Guaraná, sucos e 15kg de gelo.",
+    "assigned_to": "Matusalém",
+    "deadline": "2025-12-18",
+    "status": "Realizada",
+    "budget": 183.0,
+    "actual_spent": 124.0,
+    "notes": "Gastou R$ 124,00 com bebidas em promoção."
+  },
+  {
+    "id": "tsk_06",
+    "title": "Providenciar Descartáveis e Limpeza",
+    "description": "Buscar pratos, copos, garfos, papel toalha e sacos de lixo.",
+    "assigned_to": "Douglas",
+    "deadline": "2025-12-17",
+    "status": "Realizada",
+    "budget": 134.0,
+    "actual_spent": 0.0,
+    "notes": "Descartáveis foram aproveitados de estoque da escola sem custo adicional."
+  },
+  {
+    "id": "tsk_07",
+    "title": "Recepção e Fechamento de Caixa",
+    "description": "Conferir comprovantes PIX dos alunos e servidores e liquidar os reembolsos dos colaboradores.",
+    "assigned_to": "Venzel",
+    "deadline": "2025-12-18",
+    "status": "Realizada",
+    "budget": 0.0,
+    "actual_spent": 0.0,
+    "notes": "Fechamento realizado com sobras de R$ 91,06 no saldo final."
+  }
+]

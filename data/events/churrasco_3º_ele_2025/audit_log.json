@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Administrador Master",
+    "action": "CRIAR_EVENTO",
+    "details": "Evento 'Churrasco 3º ELE 2025' criado com sucesso."
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Carga inicial de participantes"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_COLLABORATORS",
+    "details": "Carga inicial de colaboradores"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_SUPPLIERS",
+    "details": "Carga inicial de fornecedores"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Carga inicial de consumíveis"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Carga inicial de receitas"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Carga inicial de tarefas"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Carga inicial de fluxo de caixa"
+  },
+  {
+    "timestamp": "2026-11-02 10:30:52",
+    "user": "Sistema",
+    "action": "ATUALIZAR_SUGGESTIONS",
+    "details": "Carga inicial de sugestões"
+  }
+]

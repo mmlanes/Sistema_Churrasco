@@ -1,0 +1,86 @@
+[
+  {
+    "id": "csh_in_alunos",
+    "type": "ENTRADA",
+    "category": "Contribuição Alunos",
+    "description": "Pagamento de 24 alunos x R$ 25,00",
+    "amount": 600.0,
+    "payer_or_receiver": "Comissão de Alunos",
+    "date": "2025-12-15",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Recebido no caixa geral da turma"
+  },
+  {
+    "id": "csh_in_profs",
+    "type": "ENTRADA",
+    "category": "Contribuição Servidores",
+    "description": "Pagamento de 5 servidores/professores (Matusalém, Douglas, Laércio, Venzel, Isaac)",
+    "amount": 125.0,
+    "payer_or_receiver": "Servidores",
+    "date": "2025-12-16",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "R$ 25,00 por professor"
+  },
+  {
+    "id": "csh_out_marcelle",
+    "type": "SAIDA",
+    "category": "Reembolso / Compras",
+    "description": "PIX para Marcelle - Compra do Pão de Alho",
+    "amount": 62.0,
+    "payer_or_receiver": "Marcelle",
+    "date": "2025-12-17",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Comprovante conferido"
+  },
+  {
+    "id": "csh_out_julia",
+    "type": "SAIDA",
+    "category": "Reembolso / Compras",
+    "description": "PIX para Júlia Marinho - Compra de 110 Picolés",
+    "amount": 165.0,
+    "payer_or_receiver": "Júlia Marinho",
+    "date": "2025-12-18",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Comprovante conferido"
+  },
+  {
+    "id": "csh_out_manuela",
+    "type": "SAIDA",
+    "category": "Reembolso / Compras",
+    "description": "PIX para Manuela - Ingredientes Farofa e Vinagrete (R$ 82,66 - cota R$ 25,00)",
+    "amount": 57.66,
+    "payer_or_receiver": "Manuela",
+    "date": "2025-12-18",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Reembolso líquido após desconto de sua participação"
+  },
+  {
+    "id": "csh_out_matu_carnes1",
+    "type": "SAIDA",
+    "category": "Carnes & Churrasco",
+    "description": "Compra de carnes e insumos por Matusalém (Etapa 1)",
+    "amount": 225.28,
+    "payer_or_receiver": "Matusalém / Açougue",
+    "date": "2025-12-18",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Cupom fiscal arquivado"
+  },
+  {
+    "id": "csh_out_matu_bebidas",
+    "type": "SAIDA",
+    "category": "Bebidas",
+    "description": "Compra de refrigerantes e sucos por Matusalém",
+    "amount": 124.0,
+    "payer_or_receiver": "Matusalém / Atacadão",
+    "date": "2025-12-18",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "notes": "Comprovante arquivado"
+  }
+]
