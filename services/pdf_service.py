@@ -260,57 +260,213 @@ def generate_cashflow_pdf(
 def generate_shopping_list_pdf(
     event_meta: Dict[str, Any],
     consumables: List[Dict[str, Any]],
-    recipe_ingredients: List[Dict[str, Any]],
-    suppliers_dict: Dict[str, str]
+    recipes: List[Dict[str, Any]],
+    suppliers_dict: Dict[str, str],
+    participant_count: int = 0
 ) -> bytes:
-    """Gera a Lista de Compras Completa com Arredondamento Comercial."""
-    pdf = ChurrascoPDF("Lista de Compras Consolidada", event_meta.get("name", "Evento"))
+    """
+    Gera o Relatório Detalhado da Lista de Compras para o Churrasco,
+    incluindo itens diretos e todas as receitas fabricadas, com seus
+    ingredientes, unidades, quantidades, preços unitários, custos totais e responsáveis.
+    """
+    pdf = ChurrascoPDF("Relatório de Compras & Insumos", event_meta.get("name", "Evento"))
     pdf.alias_nb_pages()
     pdf.add_page()
 
+    # Normalização de receitas (seja calc_recipes completo ou lista plana de ingredientes)
+    normalized_recipes = []
+    if recipes:
+        if isinstance(recipes[0], dict) and "ingredients" in recipes[0]:
+            normalized_recipes = recipes
+        else:
+            rec_map = {}
+            for ing in recipes:
+                src = ing.get("source_recipe", "Receita Fabricada")
+                if src not in rec_map:
+                    rec_map[src] = {
+                        "name": src,
+                        "assigned_to": ing.get("assigned_to", "Colaborador"),
+                        "total_cost": 0.0,
+                        "ingredients": []
+                    }
+                rec_map[src]["ingredients"].append(ing)
+                rec_map[src]["total_cost"] += float(ing.get("total_cost", 0))
+            normalized_recipes = list(rec_map.values())
+
+    tot_consumables = sum(float(c.get("total_cost", 0)) for c in consumables)
+    tot_recipes = sum(float(r.get("total_cost", 0)) for r in normalized_recipes)
+    grand_total = tot_consumables + tot_recipes
+    cost_per_person = grand_total / (participant_count or 1) if participant_count else 0.0
+
+    # 1. Bloco de Informações Básicas / Resumo
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_fill_color(240, 245, 255)
+    pdf.set_text_color(20, 40, 80)
+    pdf.cell(0, 7, clean_txt("INFORMAÇÕES GERAIS DE COMPRAS E INSUMOS"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(40, 40, 40)
+    pdf.cell(95, 6, clean_txt(f"Evento: {event_meta.get('name', 'Churrasco')}"))
+    pdf.cell(95, 6, clean_txt(f"Data Prevista: {event_meta.get('date', '-')}"), new_x="LMARGIN", new_y="NEXT")
+
+    part_txt = f"{participant_count} pessoas confirmadas" if participant_count else "Conforme planejamento"
+    pdf.cell(95, 6, clean_txt(f"Base de Cálculo: {part_txt}"))
+    pdf.cell(95, 6, clean_txt(f"Valor Total Estimado: {fmt_moeda(grand_total)}"), new_x="LMARGIN", new_y="NEXT")
+    if participant_count:
+        pdf.cell(95, 6, clean_txt(f"Custo Médio / Participante: {fmt_moeda(cost_per_person)}"), new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+
+    # 2. Seção de Itens Diretos
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 7, clean_txt("ITENS DIRETOS (BEBIDAS, CARNES, DESCARTÁVEIS, GELO)"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 7, clean_txt("1. CONSUMÍVEIS DIRETOS (BEBIDAS, CARNES, GELO, CARVÃO, DESCARTÁVEIS)"), new_x="LMARGIN", new_y="NEXT")
 
+    # Colunas: Item(42), Categoria(22), Qtd/Emb(28), Preço(20), Total(22), Fornecedor(30), Responsável(26) = 190mm
     pdf.set_font("Helvetica", "B", 8)
-    pdf.set_fill_color(240, 240, 240)
-    pdf.cell(60, 6, clean_txt("Item"), border=1, fill=True)
-    pdf.cell(35, 6, clean_txt("Embalagem/Formato"), border=1, fill=True)
-    pdf.cell(30, 6, clean_txt("Qtd a Comprar"), border=1, fill=True, align="C")
-    pdf.cell(40, 6, clean_txt("Fornecedor Recomendado"), border=1, fill=True)
-    pdf.cell(25, 6, clean_txt("Estimativa"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_fill_color(230, 235, 245)
+    pdf.cell(42, 6, clean_txt("Item"), border=1, fill=True)
+    pdf.cell(22, 6, clean_txt("Categoria"), border=1, fill=True)
+    pdf.cell(28, 6, clean_txt("Qtd a Comprar"), border=1, fill=True, align="C")
+    pdf.cell(20, 6, clean_txt("Preço Unit."), border=1, fill=True, align="R")
+    pdf.cell(22, 6, clean_txt("Custo Total"), border=1, fill=True, align="R")
+    pdf.cell(30, 6, clean_txt("Fornecedor"), border=1, fill=True)
+    pdf.cell(26, 6, clean_txt("Responsável"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(30, 30, 30)
     for c in consumables:
-        sup_name = suppliers_dict.get(c.get("supplier_id"), "Não informado")
-        pack_info = c.get("package_unit_name") or f"Pacote {c.get('package_size')} {c.get('unit')}"
-        pdf.cell(60, 5, clean_txt(c.get("name", "")[:35]), border=1)
-        pdf.cell(35, 5, clean_txt(pack_info[:22]), border=1)
-        pdf.cell(30, 5, clean_txt(f"{c.get('adjusted_quantity', 0)} {c.get('unit', '')}"), border=1, align="C")
-        pdf.cell(40, 5, clean_txt(sup_name[:25]), border=1)
-        pdf.cell(25, 5, clean_txt(fmt_moeda(float(c.get("total_cost", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+        if pdf.get_y() > 270:
+            pdf.add_page()
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_fill_color(230, 235, 245)
+            pdf.cell(42, 6, clean_txt("Item"), border=1, fill=True)
+            pdf.cell(22, 6, clean_txt("Categoria"), border=1, fill=True)
+            pdf.cell(28, 6, clean_txt("Qtd a Comprar"), border=1, fill=True, align="C")
+            pdf.cell(20, 6, clean_txt("Preço Unit."), border=1, fill=True, align="R")
+            pdf.cell(22, 6, clean_txt("Custo Total"), border=1, fill=True, align="R")
+            pdf.cell(30, 6, clean_txt("Fornecedor"), border=1, fill=True)
+            pdf.cell(26, 6, clean_txt("Responsável"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_font("Helvetica", "", 8)
 
-    if recipe_ingredients:
-        pdf.ln(4)
+        sup_name = suppliers_dict.get(c.get("supplier_id"), "-") or "-"
+        resp_name = c.get("assigned_collaborator", "-") or "-"
+        qtd_txt = f"{c.get('adjusted_quantity', 0)} {c.get('unit', '')}"
+        if c.get("package_size", 0) > 0 and c.get("packages_needed", 0) > 0:
+            qtd_txt = f"{c.get('packages_needed')}x ({c.get('adjusted_quantity')} {c.get('unit', '')})"
+
+        pdf.cell(42, 5, clean_txt(c.get("name", "")[:24]), border=1)
+        pdf.cell(22, 5, clean_txt(c.get("category", "")[:13]), border=1)
+        pdf.cell(28, 5, clean_txt(qtd_txt[:18]), border=1, align="C")
+        pdf.cell(20, 5, clean_txt(fmt_moeda(float(c.get("unit_price", 0)))), border=1, align="R")
+        pdf.cell(22, 5, clean_txt(fmt_moeda(float(c.get("total_cost", 0)))), border=1, align="R")
+        pdf.cell(30, 5, clean_txt(sup_name[:18]), border=1)
+        pdf.cell(26, 5, clean_txt(resp_name[:16]), border=1, new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(112, 6, clean_txt("Subtotal Consumíveis Diretos:"), border=1, align="R")
+    pdf.cell(22, 6, clean_txt(fmt_moeda(tot_consumables)), border=1, align="R")
+    pdf.cell(56, 6, clean_txt(""), border=1, new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    # 3. Seção de Receitas Fabricadas por Colaboradores
+    if normalized_recipes:
+        if pdf.get_y() > 235:
+            pdf.add_page()
+
         pdf.set_font("Helvetica", "B", 10)
         pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 7, clean_txt("INGREDIENTES PARA RECEITAS (FAROFA, VINAGRETE, ETC.)"), new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 7, clean_txt("2. RECEITAS FABRICADAS POR COLABORADORES (FAROFAS, VINAGRETES, ACOMPANHAMENTOS)"), new_x="LMARGIN", new_y="NEXT")
+
+        for r in normalized_recipes:
+            if pdf.get_y() > 225:
+                pdf.add_page()
+
+            # Cabeçalho da Receita com Chef / Responsável e Rendimento
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_fill_color(245, 248, 252)
+            pdf.set_text_color(20, 30, 60)
+            rec_title = f"RECEITA: {r.get('name')} | Responsável: {r.get('assigned_to', 'Não definido')}"
+            rec_sub = f"Rendimento Calculado: {r.get('total_yield_needed', '-')} {r.get('yield_unit', 'kg')} | Custo da Receita: {fmt_moeda(float(r.get('total_cost', 0)))}"
+            pdf.cell(0, 6, clean_txt(rec_title), border="LTR", fill=True, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_font("Helvetica", "I", 8)
+            pdf.cell(0, 5, clean_txt(rec_sub), border="LBR", fill=True, new_x="LMARGIN", new_y="NEXT")
+
+            # Colunas da Tabela de Ingredientes:
+            # Ingrediente(52), Qtd(24), Unidade(16), Preço(22), Total(24), Fornecedor(28), Responsável(24) = 190mm
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_fill_color(235, 240, 248)
+            pdf.set_text_color(40, 50, 70)
+            pdf.cell(52, 5, clean_txt("Ingrediente / Insumo"), border=1, fill=True)
+            pdf.cell(24, 5, clean_txt("Qtd a Comprar"), border=1, fill=True, align="C")
+            pdf.cell(16, 5, clean_txt("Unidade"), border=1, fill=True, align="C")
+            pdf.cell(22, 5, clean_txt("Preço Unit."), border=1, fill=True, align="R")
+            pdf.cell(24, 5, clean_txt("Custo Total"), border=1, fill=True, align="R")
+            pdf.cell(28, 5, clean_txt("Fornecedor"), border=1, fill=True)
+            pdf.cell(24, 5, clean_txt("Responsável"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+
+            ings = r.get("ingredients", [])
+            pdf.set_font("Helvetica", "", 8)
+            pdf.set_text_color(30, 30, 30)
+            rec_cost = 0.0
+
+            if ings:
+                for ing in ings:
+                    if pdf.get_y() > 272:
+                        pdf.add_page()
+                    ing_name = ing.get("name", "")
+                    if " (p/ " in ing_name:
+                        ing_name = ing_name.split(" (p/ ")[0]
+                    ing_qty = ing.get("adjusted_qty") if ing.get("adjusted_qty") is not None else ing.get("adjusted_quantity", 0)
+                    ing_unit = ing.get("unit", "")
+                    ing_price = float(ing.get("unit_price", 0))
+                    ing_cost = float(ing.get("cost") if ing.get("cost") is not None else ing.get("total_cost", 0))
+                    rec_cost += ing_cost
+                    ing_sup = suppliers_dict.get(ing.get("supplier_id"), "-") or "-"
+                    ing_resp = ing.get("assigned_to") or r.get("assigned_to", "-") or "-"
+
+                    pdf.cell(52, 5, clean_txt(ing_name[:30]), border=1)
+                    pdf.cell(24, 5, clean_txt(str(ing_qty)), border=1, align="C")
+                    pdf.cell(16, 5, clean_txt(str(ing_unit)[:10]), border=1, align="C")
+                    pdf.cell(22, 5, clean_txt(fmt_moeda(ing_price)), border=1, align="R")
+                    pdf.cell(24, 5, clean_txt(fmt_moeda(ing_cost)), border=1, align="R")
+                    pdf.cell(28, 5, clean_txt(ing_sup[:17]), border=1)
+                    pdf.cell(24, 5, clean_txt(ing_resp[:15]), border=1, new_x="LMARGIN", new_y="NEXT")
+
+                pdf.set_font("Helvetica", "B", 8)
+                pdf.cell(114, 5, clean_txt(f"Subtotal Receita '{r.get('name')}':"), border=1, align="R")
+                pdf.cell(24, 5, clean_txt(fmt_moeda(rec_cost or float(r.get("total_cost", 0)))), border=1, align="R")
+                pdf.cell(52, 5, clean_txt(""), border=1, new_x="LMARGIN", new_y="NEXT")
+            else:
+                pdf.cell(190, 5, clean_txt("Nenhum ingrediente cadastrado nesta receita."), border=1, align="C", new_x="LMARGIN", new_y="NEXT")
+
+            pdf.ln(3)
 
         pdf.set_font("Helvetica", "B", 8)
-        pdf.set_fill_color(240, 240, 240)
-        pdf.cell(70, 6, clean_txt("Ingrediente"), border=1, fill=True)
-        pdf.cell(40, 6, clean_txt("Receita Destino"), border=1, fill=True)
-        pdf.cell(30, 6, clean_txt("Qtd Necessária"), border=1, fill=True, align="C")
-        pdf.cell(25, 6, clean_txt("Preço Unit."), border=1, fill=True, align="R")
-        pdf.cell(25, 6, clean_txt("Total"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(114, 6, clean_txt("Subtotal Geral de Todas as Receitas:"), border=1, align="R")
+        pdf.cell(24, 6, clean_txt(fmt_moeda(tot_recipes)), border=1, align="R")
+        pdf.cell(52, 6, clean_txt(""), border=1, new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
 
-        pdf.set_font("Helvetica", "", 8)
-        for ing in recipe_ingredients:
-            pdf.cell(70, 5, clean_txt(ing.get("name", "")[:42]), border=1)
-            pdf.cell(40, 5, clean_txt(ing.get("source_recipe", "")[:24]), border=1)
-            pdf.cell(30, 5, clean_txt(f"{ing.get('adjusted_quantity', 0)} {ing.get('unit', '')}"), border=1, align="C")
-            pdf.cell(25, 5, clean_txt(fmt_moeda(float(ing.get("unit_price", 0)))), border=1, align="R")
-            pdf.cell(25, 5, clean_txt(fmt_moeda(float(ing.get("total_cost", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+    # 4. Resumo Financeiro Consolidado
+    if pdf.get_y() > 240:
+        pdf.add_page()
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_fill_color(225, 235, 250)
+    pdf.set_text_color(10, 30, 70)
+    pdf.cell(0, 7, clean_txt("3. RESUMO GERAL FINANCEIRO DA LISTA DE COMPRAS"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(40, 40, 40)
+    pdf.cell(130, 6, clean_txt("Subtotal Consumíveis Diretos (Bebidas, Carnes, Gelo, Carvão, Descartáveis):"), border=1)
+    pdf.cell(60, 6, clean_txt(fmt_moeda(tot_consumables)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.cell(130, 6, clean_txt("Subtotal Receitas Fabricadas (Farofas, Vinagretes, Acompanhamentos):"), border=1)
+    pdf.cell(60, 6, clean_txt(fmt_moeda(tot_recipes)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_fill_color(240, 240, 240)
+    pdf.cell(130, 7, clean_txt("VALOR TOTAL GERAL DA COMPRA:"), border=1, fill=True)
+    pdf.cell(60, 7, clean_txt(fmt_moeda(grand_total)), border=1, align="R", fill=True, new_x="LMARGIN", new_y="NEXT")
 
     return bytes(pdf.output())
 

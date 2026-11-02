@@ -168,56 +168,159 @@ def render_reports(event_id: str):
             st.dataframe(df_out, use_container_width=True, hide_index=True)
 
     # ========================================================
-    # ABA 3: LISTA DE COMPRAS COM ARREDONDAMENTO
+    # ABA 3: LISTA DE COMPRAS COM ARREDONDAMENTO & RECEITAS
     # ========================================================
     with tab3:
-        st.subheader("Lista de Compras com Ajuste de Embalagens Comerciais")
-        st.caption("Evita faltas no churrasco arredondando garrafas de 2L/3L, fardos e ingredientes inteiros.")
+        st.subheader("🛒 Relatório de Compras & Insumos para o Churrasco")
+        st.caption("Detalhamento completo de todos os itens e receitas a serem comprados para o churrasco, com quantidades ajustadas para embalagens comerciais, preços unitários, custos totais, fornecedores e colaboradores responsáveis.")
 
-        recipe_ings = rec_summary.get("all_recipe_ingredients", [])
-        if is_pdf_available():
-            pdf_shop_bytes = generate_shopping_list_pdf(meta, calc_consumables, recipe_ings, suppliers_dict)
-            st.download_button(
-                label="📥 Baixar Lista de Compras em PDF",
-                data=pdf_shop_bytes,
-                file_name=f"Lista_Compras_{event_id}.pdf",
-                mime="application/pdf",
-                type="primary"
-            )
-        else:
-            st.warning("⚠️ Instale 'fpdf2' (`pip install fpdf2`) para habilitar o download em PDF.")
+        tot_dir = cons_summary.get("grand_total", 0.0)
+        tot_rec = rec_summary.get("recipes_grand_total", 0.0)
+        tot_geral = tot_dir + tot_rec
+        custo_p = tot_geral / (confirmed_count or 1)
+
+        # Métricas no topo
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Total Geral de Compras", f"R$ {tot_geral:,.2f}")
+        m2.metric("Consumíveis Diretos", f"R$ {tot_dir:,.2f}", f"{len(calc_consumables)} itens")
+        m3.metric("Receitas Fabricadas", f"R$ {tot_rec:,.2f}", f"{len(calc_recipes)} receitas")
+        m4.metric("Custo / Participante", f"R$ {custo_p:,.2f}", f"Base: {confirmed_count} confirmados")
 
         st.markdown("---")
-        st.write("##### Bebidas e Consumíveis Principais:")
-        df_shop_v = pd.DataFrame([
-            {
-                "Item": it["name"],
-                "Embalagem Comercial": it.get("package_unit_name", f"{it.get('package_size')} {it.get('unit')}"),
-                "Qtd Mínima": f"{it.get('base_needed')} {it.get('unit')}",
-                "Embalagens a Comprar": f"{it.get('packages_needed')} un" if it.get("package_size", 0) > 0 else "-",
-                "Volume/Peso Final": f"{it.get('adjusted_quantity')} {it.get('unit')}",
-                "Preço Unitário": f"R$ {float(it.get('unit_price', 0)):.2f}",
-                "Custo Total": f"R$ {float(it.get('total_cost', 0)):.2f}",
-                "Fornecedor": suppliers_dict.get(it.get("supplier_id"), "-")
-            }
-            for it in calc_consumables
-        ])
-        st.dataframe(df_shop_v, use_container_width=True, hide_index=True)
 
-        if recipe_ings:
-            st.write("##### Ingredientes para Farofas e Vinagretes:")
-            df_rec_v = pd.DataFrame([
+        # Botões de Download: PDF Completo e Planilha CSV
+        col_dl_pdf, col_dl_csv = st.columns(2)
+        with col_dl_pdf:
+            if is_pdf_available():
+                pdf_shop_bytes = generate_shopping_list_pdf(
+                    meta, calc_consumables, calc_recipes, suppliers_dict, confirmed_count
+                )
+                st.download_button(
+                    label="📄 Baixar Relatório de Compras em PDF (Completo)",
+                    data=pdf_shop_bytes,
+                    file_name=f"Relatorio_Compras_Churrasco_{event_id}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True
+                )
+            else:
+                st.warning("⚠️ Instale 'fpdf2' (`pip install fpdf2`) para habilitar o download em PDF.")
+
+        with col_dl_csv:
+            # Montagem de tabela consolidada para exportação em CSV (compatível com Excel)
+            export_rows = []
+            for c in calc_consumables:
+                pack_info = c.get("package_unit_name") or (f"{c.get('package_size')} {c.get('unit')}" if c.get("package_size", 0) > 0 else "-")
+                export_rows.append({
+                    "Origem": "Consumível Direto",
+                    "Receita": "-",
+                    "Item / Ingrediente": c.get("name"),
+                    "Categoria": c.get("category", "-"),
+                    "Qtd Necessária": c.get("base_needed"),
+                    "Qtd a Comprar (Ajustada)": c.get("adjusted_quantity"),
+                    "Unidade": c.get("unit"),
+                    "Embalagem Comercial": pack_info,
+                    "Preço Unitário (R$)": c.get("unit_price"),
+                    "Custo Total (R$)": c.get("total_cost"),
+                    "Fornecedor": suppliers_dict.get(c.get("supplier_id"), "-"),
+                    "Responsável": c.get("assigned_collaborator", "-")
+                })
+            for r in calc_recipes:
+                for ing in r.get("ingredients", []):
+                    export_rows.append({
+                        "Origem": "Receita Fabricada",
+                        "Receita": r.get("name"),
+                        "Item / Ingrediente": ing.get("name"),
+                        "Categoria": f"Receita: {r.get('name')}",
+                        "Qtd Necessária": ing.get("needed_qty"),
+                        "Qtd a Comprar (Ajustada)": ing.get("adjusted_qty"),
+                        "Unidade": ing.get("unit"),
+                        "Embalagem Comercial": f"{ing.get('package_size')} {ing.get('unit')}" if ing.get("package_size", 0) > 0 else "-",
+                        "Preço Unitário (R$)": ing.get("unit_price"),
+                        "Custo Total (R$)": ing.get("cost"),
+                        "Fornecedor": suppliers_dict.get(ing.get("supplier_id"), "-"),
+                        "Responsável": ing.get("assigned_to") or r.get("assigned_to", "-")
+                    })
+            if export_rows:
+                df_export = pd.DataFrame(export_rows)
+                csv_bytes = df_export.to_csv(index=False, sep=";", decimal=",", encoding="utf-8-sig").encode("utf-8-sig")
+                st.download_button(
+                    label="📊 Baixar Lista Consolidada em CSV (Excel)",
+                    data=csv_bytes,
+                    file_name=f"Lista_Compras_Churrasco_{event_id}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+
+        st.markdown("---")
+
+        # ====================================================
+        # BLOCO 1: RECEITAS FABRICADAS POR COLABORADORES
+        # ====================================================
+        st.write("### 🥗 1. Receitas Fabricadas por Colaboradores")
+        st.caption("Receitas personalizadas (Farofas, Vinagretes, Sobremesas) com seus ingredientes detalhados, preços, rendimentos e responsáveis pelo preparo.")
+
+        if calc_recipes:
+            for r in calc_recipes:
+                with st.container():
+                    st.markdown(f"#### 🍲 Receita: {r.get('name')}")
+                    col_r1, col_r2, col_r3 = st.columns([1.5, 1.5, 1.5])
+                    with col_r1:
+                        st.write(f"🧑‍🍳 **Chef / Responsável:** `{r.get('assigned_to', 'Não definido')}`")
+                    with col_r2:
+                        st.write(f"⚖️ **Rendimento Calculado:** `{r.get('total_yield_needed')} {r.get('yield_unit', 'kg')}`")
+                    with col_r3:
+                        st.write(f"💰 **Custo Total da Receita:** `R$ {float(r.get('total_cost', 0)):,.2f}`")
+
+                    if r.get("instructions"):
+                        st.caption(f"📝 *Modo de preparo:* {r.get('instructions')}")
+
+                    ings = r.get("ingredients", [])
+                    if ings:
+                        df_rec_display = pd.DataFrame([
+                            {
+                                "Ingrediente / Insumo": ing.get("name"),
+                                "Qtd Calculada": f"{ing.get('adjusted_qty')} {ing.get('unit')}",
+                                "Preço Unitário": f"R$ {float(ing.get('unit_price', 0)):.2f}",
+                                "Custo Total": f"R$ {float(ing.get('cost', 0)):.2f}",
+                                "Fornecedor": suppliers_dict.get(ing.get("supplier_id"), "-"),
+                                "Responsável": ing.get("assigned_to") or r.get("assigned_to", "-")
+                            }
+                            for ing in ings
+                        ])
+                        st.dataframe(df_rec_display, use_container_width=True, hide_index=True)
+                    else:
+                        st.warning("Nenhum ingrediente cadastrado para esta receita.")
+                    st.write("")
+        else:
+            st.info("Nenhuma receita fabricada cadastrada para este evento.")
+
+        st.markdown("---")
+
+        # ====================================================
+        # BLOCO 2: CONSUMÍVEIS DIRETOS
+        # ====================================================
+        st.write("### 🥩🥤 2. Consumíveis Diretos (Bebidas, Carnes, Gelo, Carvão, Descartáveis)")
+        st.caption("Itens comprados prontos e agrupados por fornecedor e comprador responsável.")
+
+        if calc_consumables:
+            df_direct_display = pd.DataFrame([
                 {
-                    "Ingrediente": ing.get("name"),
-                    "Receita": ing.get("source_recipe"),
-                    "Qtd Calculada": f"{ing.get('adjusted_quantity')} {ing.get('unit')}",
-                    "Preço Unitário": f"R$ {float(ing.get('unit_price', 0)):.2f}",
-                    "Custo Estimado": f"R$ {float(ing.get('total_cost', 0)):.2f}",
-                    "Fornecedor": suppliers_dict.get(ing.get("supplier_id"), "-")
+                    "Item": it.get("name"),
+                    "Categoria": it.get("category", "-"),
+                    "Embalagem Comercial": it.get("package_unit_name") or f"{it.get('package_size')} {it.get('unit')}",
+                    "Qtd a Comprar": f"{it.get('adjusted_quantity')} {it.get('unit')}",
+                    "Embalagens": f"{it.get('packages_needed')} un" if it.get("package_size", 0) > 0 else "-",
+                    "Preço Unitário": f"R$ {float(it.get('unit_price', 0)):.2f}",
+                    "Custo Total": f"R$ {float(it.get('total_cost', 0)):.2f}",
+                    "Fornecedor": suppliers_dict.get(it.get("supplier_id"), "-"),
+                    "Responsável pela Compra": it.get("assigned_collaborator", "-")
                 }
-                for ing in recipe_ings
+                for it in calc_consumables
             ])
-            st.dataframe(df_rec_v, use_container_width=True, hide_index=True)
+            st.dataframe(df_direct_display, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum consumível direto cadastrado para este evento.")
 
     # ========================================================
     # ABA 4: TAREFAS E COLABORADORES

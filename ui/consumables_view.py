@@ -2,7 +2,8 @@ import uuid
 import pandas as pd
 import streamlit as st
 from services.calculation_service import calculate_consumables_totals, calculate_recipes_totals
-from services.event_service import get_event_data, save_event_data
+from services.event_service import get_event, get_event_data, save_event_data
+from services.pdf_service import generate_shopping_list_pdf, is_pdf_available
 from ui.auth_view import can_edit
 
 
@@ -523,6 +524,18 @@ def render_consumables(event_id: str):
     with tab3:
         st.subheader("🛒 Lista de Compras Completa e Unificada")
         st.caption("Todos os itens diretos e todos os ingredientes das receitas agrupados por fornecedor e categoria.")
+
+        if is_pdf_available():
+            event_meta = get_event(event_id) or {}
+            pdf_bytes = generate_shopping_list_pdf(event_meta, calc_items, calc_recipes, suppliers_dict, confirmed_count)
+            st.download_button(
+                label="📄 Baixar Relatório de Compras em PDF (Com Receitas e Responsáveis)",
+                data=pdf_bytes,
+                file_name=f"Lista_Compras_{event_id}.pdf",
+                mime="application/pdf",
+                type="primary",
+                key="btn_dl_shop_pdf_consumables"
+            )
 
         all_shopping_items = []
         for item in calc_items:
