@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import streamlit as st
 from services.calculation_service import calculate_consumables_totals, calculate_recipes_totals
@@ -76,20 +77,34 @@ def render_reports(event_id: str):
 
         st.markdown("---")
 
-        # Botão de Emissão em PDF
-        if is_pdf_available():
-            pdf_bytes = generate_general_event_pdf(
-                meta, participants, calc_consumables, calc_recipes, tasks, cashflow, cons_summary, rec_summary
-            )
+        # Botões de Emissão em PDF e Exportação em JSON
+        col_dl1, col_dl2 = st.columns(2)
+        with col_dl1:
+            if is_pdf_available():
+                pdf_bytes = generate_general_event_pdf(
+                    meta, participants, calc_consumables, calc_recipes, tasks, cashflow, cons_summary, rec_summary
+                )
+                st.download_button(
+                    label="📄 Baixar Relatório Geral em PDF",
+                    data=pdf_bytes,
+                    file_name=f"Relatorio_Geral_{event_id}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True
+                )
+            else:
+                st.warning("⚠️ Biblioteca 'fpdf2' não encontrada no ambiente atual. Para gerar PDFs, instale com: `pip install fpdf2`")
+
+        with col_dl2:
+            from services.backup_service import export_event_database_json_bytes
+            ev_json_bytes = export_event_database_json_bytes(event_id)
             st.download_button(
-                label="📥 Baixar Relatório Geral em PDF",
-                data=pdf_bytes,
-                file_name=f"Relatorio_Geral_{event_id}.pdf",
-                mime="application/pdf",
-                type="primary"
+                label="💾 Exportar Dados Deste Evento (.json)",
+                data=ev_json_bytes,
+                file_name=f"dados_evento_{event_id}_{datetime.now().strftime('%Y%m%d')}.json",
+                mime="application/json",
+                use_container_width=True
             )
-        else:
-            st.warning("⚠️ Biblioteca 'fpdf2' não encontrada no ambiente atual. Para gerar PDFs, instale com: `pip install fpdf2`")
 
         st.markdown("---")
         st.write("##### Itens Principais do Orçamento:")

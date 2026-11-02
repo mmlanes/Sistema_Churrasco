@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import streamlit as st
 from services.auth_service import delete_user, get_all_users, save_user
@@ -14,7 +15,11 @@ def render_admin(event_id: str):
         st.error("⛔ Acesso Restrito: Apenas usuários com perfil Master podem gerenciar contas e configurações avançadas.")
         return
 
-    tab1, tab2 = st.tabs(["👥 Gestão de Usuários e Permissões", "📜 Log de Auditoria do Evento"])
+    tab1, tab2, tab3 = st.tabs([
+        "👥 Gestão de Usuários e Permissões",
+        "📜 Log de Auditoria do Evento",
+        "💾 Backup e Migração de Dados"
+    ])
 
     all_events = list_events()
     ev_dict = {e["id"]: f"{e['name']} ({e.get('date', '')})" for e in all_events}
@@ -183,4 +188,116 @@ def render_admin(event_id: str):
                 for l in logs
             ])
             st.dataframe(df_logs, use_container_width=True, hide_index=True)
+
+    # ========================================================
+    # ABA 3: BACKUP E MIGRAÇÃO DE DADOS
+    # ========================================================
+    with tab3:
+        st.subheader("💾 Exportação e Backup Completo da Base de Dados")
+        st.caption("Exporte todos os dados cadastrados em formato de texto padronizado (JSON) para arquivamento ou migração para outra plataforma.")
+
+        from services.backup_service import (
+            export_full_database_json_bytes,
+            export_event_database_json_bytes,
+            export_full_database_zip,
+            import_database_from_json
+        )
+
+        ts_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        col_b1, col_b2 = st.columns(2)
+
+        with col_b1:
+            st.markdown(
+                """
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+                    <h4 style="margin-top: 0; color: #1E293B;">📄 Base Completa do Sistema (JSON)</h4>
+                    <p style="font-size: 0.9rem; color: #475569;">
+                        Arquivo único de texto contendo <b>todos os eventos</b> (participantes, compras, carnes, bebidas, receitas, financeiro) e <b>todos os usuários e permissões</b>.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            full_json_bytes = export_full_database_json_bytes()
+            st.download_button(
+                label="📥 Baixar Base Completa (.json)",
+                data=full_json_bytes,
+                file_name=f"backup_completo_churrasco_{ts_str}.json",
+                mime="application/json",
+                type="primary",
+                use_container_width=True
+            )
+            st.caption(f"Tamanho: {len(full_json_bytes)/1024:.1f} KB | Formato: JSON (UTF-8 legível)")
+
+        with col_b2:
+            st.markdown(
+                """
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+                    <h4 style="margin-top: 0; color: #1E293B;">📦 Pacote Completo com Fotos (.ZIP)</h4>
+                    <p style="font-size: 0.9rem; color: #475569;">
+                        Gera um arquivo compacto contendo o JSON consolidado, arquivos individuais por evento e <b>todas as fotos de notas fiscais e comprovantes</b>.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            zip_bytes = export_full_database_zip()
+            st.download_button(
+                label="📦 Baixar Backup Completo c/ Fotos (.zip)",
+                data=zip_bytes,
+                file_name=f"backup_completo_churrasco_{ts_str}.zip",
+                mime="application/zip",
+                use_container_width=True
+            )
+            st.caption(f"Tamanho: {len(zip_bytes)/1024:.1f} KB | Inclui JSONs e Imagens de Recibos")
+
+        st.markdown("---")
+
+        # Seção de Exportação de Evento Individual
+        st.markdown("#### 🎯 Exportar um Evento Específico em JSON")
+        st.caption("Selecione um evento para baixar apenas os dados pertinentes a ele em arquivo de texto JSON:")
+
+        col_ev_sel, col_ev_btn = st.columns([2, 1])
+        with col_ev_sel:
+            selected_export_eid = st.selectbox(
+                "Selecione o evento para exportação:",
+                options=[e["id"] for e in all_events],
+                format_func=lambda x: ev_dict.get(x, x),
+                key="sel_export_ev"
+            )
+        with col_ev_btn:
+            st.write("")
+            st.write("")
+            if selected_export_eid:
+                ev_json_bytes = export_event_database_json_bytes(selected_export_eid)
+                st.download_button(
+                    label="📥 Baixar Evento (.json)",
+                    data=ev_json_bytes,
+                    file_name=f"evento_{selected_export_eid}_{ts_str}.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
+
+        st.markdown("---")
+
+        # Seção de Importação / Migração
+        st.markdown("#### 🔄 Restaurar / Migrar Base de Dados (Importação de JSON)")
+        st.caption("Deseja migrar seus dados para outra máquina ou restaurar um backup prévio? Selecione o arquivo JSON exportado:")
+
+        uploaded_backup = st.file_uploader(
+            "Enviar arquivo JSON de backup:",
+            type=["json"],
+            key="upload_backup_file"
+        )
+        if uploaded_backup is not None:
+            if st.button("🚀 Confirmar Restauração / Migração dos Dados", type="secondary"):
+                current_user = st.session_state.get("user", {}).get("name", "Admin Master")
+                file_content = uploaded_backup.read()
+                success, msg, stats = import_database_from_json(file_content, current_user=current_user)
+                if success:
+                    st.success(f"✅ {msg}")
+                    st.rerun()
+                else:
+                    st.error(f"❌ {msg}")
 
