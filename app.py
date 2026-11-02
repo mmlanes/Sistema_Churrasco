@@ -98,8 +98,12 @@ def main():
         )
 
         st.markdown("---")
-        st.caption("🔒 **Isolamento de Dados:** Cada evento opera com sua própria pasta e arquivos JSON independentes.")
-        st.caption("📦 **Dados Iniciais:** Base histórica importada de `Gastos com churrasco - 3º ELE 2025.xlsx`.")
+        from services.supabase_service import is_supabase_available
+        if is_supabase_available():
+            st.caption("🟢 **Banco de Dados:** Supabase (Nuvem Persistente)")
+        else:
+            st.caption("💾 **Banco de Dados:** Armazenamento Local")
+        st.caption("🔒 **Isolamento de Dados:** Cada evento opera de forma independente.")
 
     # Renderização da página selecionada
     if selected_page == "📊 Painel Geral (Dashboard)":
