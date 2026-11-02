@@ -18,6 +18,11 @@ except ImportError:
     psycopg2 = None
     pool = None
 
+# Constantes padrão do projeto (URL HTTPS da nuvem e chave pública do cliente)
+# A senha administrativa do banco permanece estritamente em Secrets / sem expor no repositório
+DEFAULT_PROJECT_URL = "https://eyxmzryarmdjeekchdsh.supabase.co"
+DEFAULT_PUBLISHABLE_KEY = "sb_publishable_s3NGM-oDsUvM4nwwsJsDCA_tMHxDe1f"
+
 # Gerenciamento de Conexões e Cache de Status
 _pool_lock = threading.Lock()
 _connection_pool = None
@@ -28,10 +33,11 @@ _last_avail_check_result = False
 
 def get_supabase_credentials() -> Dict[str, Any]:
     """
-    Obtém credenciais do Supabase estritamente de fontes seguras:
+    Obtém credenciais do Supabase de forma segura e resiliente:
     1. st.secrets["supabase"] ou st.secrets raiz (Streamlit Cloud ou local .streamlit/secrets.toml)
-    2. Leitura direta de .streamlit/secrets.toml via tomllib (fora do contexto Streamlit)
+    2. Leitura direta de .streamlit/secrets.toml via tomllib
     3. Variáveis de ambiente
+    4. Fallback padrão para URL e Chave Pública do projeto (evita quedas no Streamlit Cloud)
     """
     creds = {
         "url": "",
@@ -51,21 +57,30 @@ def get_supabase_credentials() -> Dict[str, Any]:
             if "supabase" in st.secrets:
                 sec = st.secrets["supabase"]
                 creds["url"] = str(sec.get("url", sec.get("SUPABASE_URL", ""))).strip()
-                creds["key"] = str(sec.get("key", sec.get("SUPABASE_KEY", ""))).strip()
+                creds["key"] = str(sec.get("key", sec.get("SUPABASE_KEY", sec.get("anon_key", "")))).strip()
                 creds["host"] = str(sec.get("db_host", sec.get("host", ""))).strip()
                 creds["port"] = int(sec.get("db_port", sec.get("port", 5432)))
                 creds["user"] = str(sec.get("db_user", sec.get("user", "postgres"))).strip()
                 creds["password"] = str(sec.get("db_password", sec.get("password", ""))).strip()
                 creds["database"] = str(sec.get("db_name", sec.get("database", "postgres"))).strip()
-            # Chaves na raiz dos secrets
-            if not creds["url"] and "SUPABASE_URL" in st.secrets:
-                creds["url"] = str(st.secrets["SUPABASE_URL"]).strip()
-            if not creds["key"] and "SUPABASE_KEY" in st.secrets:
-                creds["key"] = str(st.secrets["SUPABASE_KEY"]).strip()
+            
+            # Chaves na raiz dos secrets (caso o usuário não tenha colocado a seção [supabase])
+            for k in ["url", "SUPABASE_URL", "supabase_url", "project_url"]:
+                if not creds["url"] and k in st.secrets:
+                    creds["url"] = str(st.secrets[k]).strip()
+            for k in ["key", "SUPABASE_KEY", "supabase_key", "anon_key", "publishable_key"]:
+                if not creds["key"] and k in st.secrets:
+                    creds["key"] = str(st.secrets[k]).strip()
+            for k in ["db_host", "host", "SUPABASE_DB_HOST"]:
+                if not creds["host"] and k in st.secrets:
+                    creds["host"] = str(st.secrets[k]).strip()
+            for k in ["db_password", "password", "SUPABASE_DB_PASSWORD"]:
+                if not creds["password"] and k in st.secrets:
+                    creds["password"] = str(st.secrets[k]).strip()
     except Exception:
         pass
 
-    # 2. Tenta carregar do arquivo local seguro .streamlit/secrets.toml (ignorado pelo git)
+    # 2. Tenta carregar do arquivo local seguro .streamlit/secrets.toml
     if not (creds["url"] and creds["key"]) and not (creds["host"] and creds["password"]):
         try:
             import tomllib
@@ -77,16 +92,18 @@ def get_supabase_credentials() -> Dict[str, Any]:
                 if "supabase" in data:
                     sec = data["supabase"]
                     creds["url"] = str(sec.get("url", sec.get("SUPABASE_URL", ""))).strip()
-                    creds["key"] = str(sec.get("key", sec.get("SUPABASE_KEY", ""))).strip()
+                    creds["key"] = str(sec.get("key", sec.get("SUPABASE_KEY", sec.get("anon_key", "")))).strip()
                     creds["host"] = str(sec.get("db_host", sec.get("host", ""))).strip()
                     creds["port"] = int(sec.get("db_port", sec.get("port", 5432)))
                     creds["user"] = str(sec.get("db_user", sec.get("user", "postgres"))).strip()
                     creds["password"] = str(sec.get("db_password", sec.get("password", ""))).strip()
                     creds["database"] = str(sec.get("db_name", sec.get("database", "postgres"))).strip()
-                if not creds["url"] and "SUPABASE_URL" in data:
-                    creds["url"] = str(data["SUPABASE_URL"]).strip()
-                if not creds["key"] and "SUPABASE_KEY" in data:
-                    creds["key"] = str(data["SUPABASE_KEY"]).strip()
+                for k in ["url", "SUPABASE_URL", "supabase_url"]:
+                    if not creds["url"] and k in data:
+                        creds["url"] = str(data[k]).strip()
+                for k in ["key", "SUPABASE_KEY", "supabase_key", "anon_key"]:
+                    if not creds["key"] and k in data:
+                        creds["key"] = str(data[k]).strip()
         except Exception:
             pass
 
@@ -99,6 +116,12 @@ def get_supabase_credentials() -> Dict[str, Any]:
         creds["host"] = os.getenv("SUPABASE_DB_HOST", "").strip()
     if not creds["password"]:
         creds["password"] = os.getenv("SUPABASE_DB_PASSWORD", "").strip()
+
+    # 4. Fallback padrão garantido para a URL HTTPS e chave pública do projeto
+    if not creds["url"]:
+        creds["url"] = DEFAULT_PROJECT_URL
+    if not creds["key"]:
+        creds["key"] = DEFAULT_PUBLISHABLE_KEY
 
     return creds
 
