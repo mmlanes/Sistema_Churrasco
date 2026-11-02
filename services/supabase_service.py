@@ -8,59 +8,86 @@ from typing import Any, Dict, List, Optional
 import psycopg2
 from psycopg2 import pool
 
-# Configurações padrão do Supabase fornecidas
-DEFAULT_SUPABASE_URL = "https://eyxmzryarmdjeekchdsh.supabase.co"
-DEFAULT_SUPABASE_KEY = "sb_publishable_s3NGM-oDsUvM4nwwsJsDCA_tMHxDe1f"
-DEFAULT_DB_HOST = "db.eyxmzryarmdjeekchdsh.supabase.co"
-DEFAULT_DB_PORT = 5432
-DEFAULT_DB_USER = "postgres"
-DEFAULT_DB_PASS = "2Fe_/!&wzyHaF@k"
-DEFAULT_DB_NAME = "postgres"
-
+# Configurações do Supabase gerenciadas estritamente via Secrets ou Variáveis de Ambiente
 _pool_lock = threading.Lock()
 _connection_pool: Optional[pool.ThreadedConnectionPool] = None
 
 
 def get_db_credentials() -> Dict[str, Any]:
-    """Obtém credenciais do Supabase a partir de st.secrets ou variáveis de ambiente ou padrões."""
+    """
+    Obtém credenciais do Supabase estritamente de fontes seguras:
+    1. st.secrets["supabase"] (Streamlit Cloud ou arquivo local .streamlit/secrets.toml)
+    2. Leitura direta de .streamlit/secrets.toml via tomllib (quando fora do Streamlit)
+    3. Variáveis de ambiente (SUPABASE_DB_HOST, SUPABASE_DB_PASSWORD, etc.)
+    
+    NENHUMA SENHA É HARDCODED NO CÓDIGO FONTE OU ENVIADA AO GITHUB.
+    """
+    # 1. Tenta carregar através de st.secrets do Streamlit
     try:
         import streamlit as st
         if hasattr(st, "secrets") and "supabase" in st.secrets:
             sec = st.secrets["supabase"]
             return {
-                "host": sec.get("db_host", DEFAULT_DB_HOST),
-                "port": int(sec.get("db_port", DEFAULT_DB_PORT)),
-                "user": sec.get("db_user", DEFAULT_DB_USER),
-                "password": sec.get("db_password", DEFAULT_DB_PASS),
-                "database": sec.get("db_name", DEFAULT_DB_NAME)
+                "host": str(sec.get("db_host", "")).strip(),
+                "port": int(sec.get("db_port", 5432)),
+                "user": str(sec.get("db_user", "postgres")).strip(),
+                "password": str(sec.get("db_password", "")).strip(),
+                "database": str(sec.get("db_name", "postgres")).strip()
             }
     except Exception:
         pass
 
+    # 2. Tenta carregar do arquivo local seguro .streamlit/secrets.toml (ignorado pelo git)
+    try:
+        import tomllib
+        from config import BASE_DIR
+        local_secrets_file = BASE_DIR / ".streamlit" / "secrets.toml"
+        if local_secrets_file.exists():
+            with open(local_secrets_file, "rb") as f:
+                data = tomllib.load(f)
+            if "supabase" in data:
+                sec = data["supabase"]
+                return {
+                    "host": str(sec.get("db_host", "")).strip(),
+                    "port": int(sec.get("db_port", 5432)),
+                    "user": str(sec.get("db_user", "postgres")).strip(),
+                    "password": str(sec.get("db_password", "")).strip(),
+                    "database": str(sec.get("db_name", "postgres")).strip()
+                }
+    except Exception:
+        pass
+
+    # 3. Variáveis de ambiente
     return {
-        "host": os.getenv("SUPABASE_DB_HOST", DEFAULT_DB_HOST),
-        "port": int(os.getenv("SUPABASE_DB_PORT", DEFAULT_DB_PORT)),
-        "user": os.getenv("SUPABASE_DB_USER", DEFAULT_DB_USER),
-        "password": os.getenv("SUPABASE_DB_PASSWORD", DEFAULT_DB_PASS),
-        "database": os.getenv("SUPABASE_DB_NAME", DEFAULT_DB_NAME)
+        "host": os.getenv("SUPABASE_DB_HOST", "").strip(),
+        "port": int(os.getenv("SUPABASE_DB_PORT", "5432")),
+        "user": os.getenv("SUPABASE_DB_USER", "postgres").strip(),
+        "password": os.getenv("SUPABASE_DB_PASSWORD", "").strip(),
+        "database": os.getenv("SUPABASE_DB_NAME", "postgres").strip()
     }
 
 
-def get_pool() -> pool.ThreadedConnectionPool:
+def get_pool() -> Optional[pool.ThreadedConnectionPool]:
     global _connection_pool
     with _pool_lock:
         if _connection_pool is None or _connection_pool.closed:
             creds = get_db_credentials()
-            _connection_pool = pool.ThreadedConnectionPool(
-                minconn=1,
-                maxconn=10,
-                host=creds["host"],
-                port=creds["port"],
-                user=creds["user"],
-                password=creds["password"],
-                database=creds["database"],
-                connect_timeout=10
-            )
+            if not creds.get("host") or not creds.get("password"):
+                return None
+            try:
+                _connection_pool = pool.ThreadedConnectionPool(
+                    minconn=1,
+                    maxconn=10,
+                    host=creds["host"],
+                    port=creds["port"],
+                    user=creds["user"],
+                    password=creds["password"],
+                    database=creds["database"],
+                    connect_timeout=10
+                )
+            except Exception as e:
+                print(f"Aviso de conexão com o Supabase: {e}")
+                _connection_pool = None
         return _connection_pool
 
 
@@ -68,6 +95,8 @@ def get_pool() -> pool.ThreadedConnectionPool:
 def get_db_cursor(commit=False):
     """Context manager para executar queries reutilizando conexões do pool de forma segura."""
     p = get_pool()
+    if p is None:
+        raise ConnectionError("Credenciais do Supabase não configuradas em Secrets ou indisponíveis.")
     conn = None
     try:
         conn = p.getconn()
@@ -109,8 +138,11 @@ def get_db_cursor(commit=False):
 
 
 def is_supabase_available() -> bool:
-    """Verifica se o Supabase está online e acessível."""
+    """Verifica se o Supabase está online e com credenciais configuradas."""
     try:
+        creds = get_db_credentials()
+        if not creds.get("host") or not creds.get("password"):
+            return False
         with get_db_cursor(commit=False) as cur:
             cur.execute("SELECT 1;")
             return True
