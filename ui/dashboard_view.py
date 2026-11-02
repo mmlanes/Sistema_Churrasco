@@ -45,7 +45,7 @@ def render_dashboard(event_id: str):
     st.title(f"📊 Painel Geral - {meta.get('name')}")
     st.caption(f"📅 Data do Evento: {meta.get('date')} | Base em: `data/events/{event_id}/`")
 
-    # Linha 1 de Métricas
+    # Linha 1 de Métricas Gerais
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric(
@@ -72,6 +72,40 @@ def render_dashboard(event_id: str):
             value=f"R$ {saldo_caixa:,.2f}",
             delta=f"Gasto Real: R$ {total_gasto_real:,.2f}",
             delta_color=delta_color
+        )
+
+    # Linha 2 de Métricas: Consumo Per Capita (Carnes e Bebidas do Churrasco)
+    k1, k2, k3 = st.columns(3)
+    meat_g = cons_summary.get("meat_grams_per_person", 0.0)
+    meat_kg_p = cons_summary.get("meat_kg_per_person", 0.0)
+    meat_tot = cons_summary.get("total_meat_kg", 0.0)
+    meat_count = cons_summary.get("meat_items_count", 0)
+
+    drink_l = cons_summary.get("drinks_liters_per_person", 0.0)
+    drink_ml = cons_summary.get("drinks_ml_per_person", 0.0)
+    drink_tot = cons_summary.get("total_drinks_liters", 0.0)
+    drink_count = cons_summary.get("drink_items_count", 0)
+
+    with k1:
+        st.metric(
+            label="🥩 Carnes por Pessoa",
+            value=f"{meat_g:.0f} g / pessoa" if meat_g < 1000 else f"{meat_kg_p:.2f} kg / pessoa",
+            delta=f"Total: {meat_tot:.1f} kg ({meat_count} tipos)",
+            delta_color="normal"
+        )
+    with k2:
+        st.metric(
+            label="🥤 Bebidas por Pessoa",
+            value=f"{drink_l:.2f} L / pessoa" if drink_l >= 1 else f"{drink_ml:.0f} ml / pessoa",
+            delta=f"Total: {drink_tot:.1f} L ({drink_count} bebidas)",
+            delta_color="normal"
+        )
+    with k3:
+        st.metric(
+            label="🍽️ Custo Estimado / Pessoa",
+            value=f"R$ {custo_por_pessoa:,.2f}",
+            delta=f"Previsto: R$ {previsto_total:,.2f}",
+            delta_color="off"
         )
 
     st.markdown("---")

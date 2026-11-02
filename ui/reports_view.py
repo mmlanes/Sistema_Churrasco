@@ -45,7 +45,7 @@ def render_reports(event_id: str):
         st.subheader(f"Relatório Geral: {meta.get('name')}")
         st.write(f"**Data Prevista:** {meta.get('date')} | **Descrição:** {meta.get('description', '-')}")
 
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown("#### 👥 Participação")
             st.write(f"- Total de Inscritos: **{len(participants)} pessoas**")
@@ -61,6 +61,18 @@ def render_reports(event_id: str):
             st.write(f"- Consumíveis Diretos: **R$ {prev_direto:,.2f}**")
             st.write(f"- Receitas Fabricadas: **R$ {prev_rec:,.2f}**")
             st.write(f"- **Total Orçado:** **R$ {prev_total:,.2f}** (R$ {(prev_total / confirmed_count):,.2f} / pessoa)")
+
+        with c3:
+            st.markdown("#### 🥩🥤 Consumo por Pessoa")
+            meat_g = cons_summary.get("meat_grams_per_person", 0.0)
+            meat_tot = cons_summary.get("total_meat_kg", 0.0)
+            drink_l = cons_summary.get("drinks_liters_per_person", 0.0)
+            drink_ml = cons_summary.get("drinks_ml_per_person", 0.0)
+            drink_tot = cons_summary.get("total_drinks_liters", 0.0)
+
+            st.write(f"- 🥩 Carnes: **{meat_g:.0f} g / pessoa** (Total: **{meat_tot:.1f} kg**)")
+            st.write(f"- 🥤 Bebidas: **{drink_l:.2f} L / pessoa** ({drink_ml:.0f} ml) (Total: **{drink_tot:.1f} L**)")
+            st.write(f"- Variedade: **{cons_summary.get('meat_items_count', 0)}** carnes e **{cons_summary.get('drink_items_count', 0)}** bebidas")
 
         st.markdown("---")
 

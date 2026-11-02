@@ -93,6 +93,13 @@ def generate_general_event_pdf(
     
     pdf.cell(95, 6, clean_txt(f"Orçamento Previsto (Itens + Receitas): {fmt_moeda(total_previsto)}"))
     pdf.cell(95, 6, clean_txt(f"Custo Estimado / Pessoa: {fmt_moeda(cost_per_person)}"), new_x="LMARGIN", new_y="NEXT")
+
+    meat_g = consumables_summary.get("meat_grams_per_person", 0.0)
+    meat_tot = consumables_summary.get("total_meat_kg", 0.0)
+    drink_l = consumables_summary.get("drinks_liters_per_person", 0.0)
+    drink_tot = consumables_summary.get("total_drinks_liters", 0.0)
+    pdf.cell(95, 6, clean_txt(f"Carnes / Pessoa: {meat_g:.0f} g (Total: {meat_tot:.1f} kg)"))
+    pdf.cell(95, 6, clean_txt(f"Bebidas / Pessoa: {drink_l:.2f} L (Total: {drink_tot:.1f} L)"), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # 2. Resumo de Consumíveis Principais

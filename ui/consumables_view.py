@@ -41,11 +41,116 @@ def render_consumables(event_id: str):
         consumables = get_event_data(event_id, "consumables")
         calc_items, summary = calculate_consumables_totals(consumables, confirmed_count)
 
-        # Métricas no topo
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Subtotal Consumíveis Diretos", f"R$ {summary['grand_total']:,.2f}")
-        m2.metric("Custo Médio / Pessoa", f"R$ {summary['cost_per_person']:,.2f}")
-        m3.metric("Total de Itens Cadastrados", f"{len(consumables)} itens")
+        # Métricas no topo com destaque para Carnes e Bebidas por Pessoa
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+
+        meat_g = summary.get("meat_grams_per_person", 0.0)
+        meat_kg_p = summary.get("meat_kg_per_person", 0.0)
+        meat_tot = summary.get("total_meat_kg", 0.0)
+        meat_adj = summary.get("total_meat_kg_adjusted", 0.0)
+        meat_count = summary.get("meat_items_count", 0)
+
+        drink_l = summary.get("drinks_liters_per_person", 0.0)
+        drink_ml = summary.get("drinks_ml_per_person", 0.0)
+        drink_tot = summary.get("total_drinks_liters", 0.0)
+        drink_adj = summary.get("total_drinks_liters_adjusted", 0.0)
+        drink_count = summary.get("drink_items_count", 0)
+
+        col_m1.metric(
+            label="🥩 Carnes por Pessoa",
+            value=f"{meat_g:.0f} g" if meat_g < 1000 else f"{meat_kg_p:.2f} kg",
+            delta=f"Total: {meat_tot:.1f} kg ({meat_count} tipos)",
+            delta_color="normal"
+        )
+
+        col_m2.metric(
+            label="🥤 Bebidas por Pessoa",
+            value=f"{drink_l:.2f} L" if drink_l >= 1 else f"{drink_ml:.0f} ml",
+            delta=f"Total: {drink_tot:.1f} L ({drink_count} bebidas)",
+            delta_color="normal"
+        )
+
+        col_m3.metric(
+            label="💰 Custo Médio / Pessoa",
+            value=f"R$ {summary['cost_per_person']:,.2f}",
+            delta=f"Base: {confirmed_count} confirmados",
+            delta_color="off"
+        )
+
+        col_m4.metric(
+            label="💵 Subtotal Consumíveis",
+            value=f"R$ {summary['grand_total']:,.2f}",
+            delta=f"{len(consumables)} itens totais",
+            delta_color="off"
+        )
+
+        # Painel Informativo de Consumo Per Capita
+        st.markdown(
+            f"""
+            <div style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #BFDBFE; border-radius: 10px; padding: 14px 18px; margin: 12px 0 16px 0;">
+                <div style="font-size: 1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 8px;">
+                    🎯 Médias de Consumo do Churrasco (Planejado para {confirmed_count} participantes):
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; font-size: 0.92rem; color: #1E293B;">
+                    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px;">
+                        <span style="font-size: 1.1rem;">🥩</span> <b>Carnes:</b> <b style="color: #DC2626; font-size: 1.05rem;">{meat_g:.0f} g / pessoa</b> (ou <b>{meat_kg_p:.3f} kg</b>)
+                        <div style="font-size: 0.85rem; color: #64748B; margin-top: 4px;">
+                            &bull; Necessário líquido: <b>{meat_tot:.2f} kg</b><br>
+                            &bull; Com embalagens comerciais: <b>{meat_adj:.2f} kg</b> ({summary.get('meat_adjusted_grams_per_person', 0.0):.0f} g / pessoa)
+                        </div>
+                    </div>
+                    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px;">
+                        <span style="font-size: 1.1rem;">🥤</span> <b>Bebidas:</b> <b style="color: #2563EB; font-size: 1.05rem;">{drink_l:.2f} L / pessoa</b> (ou <b>{drink_ml:.0f} ml</b>)
+                        <div style="font-size: 0.85rem; color: #64748B; margin-top: 4px;">
+                            &bull; Necessário líquido: <b>{drink_tot:.2f} Litros</b><br>
+                            &bull; Com embalagens comerciais: <b>{drink_adj:.2f} Litros</b> ({summary.get('drinks_adjusted_liters_per_person', 0.0):.2f} L / pessoa)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Detalhamento expansível da composição das carnes e bebidas
+        meat_breakdown = summary.get("meat_breakdown", [])
+        drinks_breakdown = summary.get("drinks_breakdown", [])
+
+        if meat_breakdown or drinks_breakdown:
+            with st.expander("🔍 Ver Composição Detalhada (Carnes e Bebidas por Participante)"):
+                col_det1, col_det2 = st.columns(2)
+                
+                with col_det1:
+                    st.markdown("##### 🥩 Composição de Carnes")
+                    if meat_breakdown:
+                        df_meat = pd.DataFrame([
+                            {
+                                "Corte / Carne": m["name"],
+                                "Qtd / Pessoa": f"{m['per_person_g']:.0f} g ({m['per_person_kg']:.3f} kg)",
+                                "% do Total": f"{(m['total_needed_kg'] / (meat_tot or 1)) * 100:.1f}%",
+                                "Total Evento": f"{m['total_needed_kg']:.2f} kg"
+                            }
+                            for m in meat_breakdown
+                        ])
+                        st.dataframe(df_meat, use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("Nenhuma carne cadastrada ainda.")
+
+                with col_det2:
+                    st.markdown("##### 🥤 Composição de Bebidas")
+                    if drinks_breakdown:
+                        df_drinks = pd.DataFrame([
+                            {
+                                "Bebida": d["name"],
+                                "Qtd / Pessoa": f"{d['per_person_l']:.2f} L ({d['per_person_ml']:.0f} ml)",
+                                "% do Total": f"{(d['total_needed_l'] / (drink_tot or 1)) * 100:.1f}%",
+                                "Total Evento": f"{d['total_needed_l']:.2f} L"
+                            }
+                            for d in drinks_breakdown
+                        ])
+                        st.dataframe(df_drinks, use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("Nenhuma bebida cadastrada ainda.")
 
         st.markdown("---")
 
