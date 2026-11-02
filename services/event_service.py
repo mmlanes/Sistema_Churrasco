@@ -16,9 +16,9 @@ from services.storage_service import (
 
 def slugify(text: str) -> str:
     text = text.strip().lower()
-    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[^\w\s-]", "", text, flags=re.ASCII)
     text = re.sub(r"[\s_-]+", "_", text)
-    return text or str(uuid.uuid4())[:8]
+    return text.strip("_") or str(uuid.uuid4())[:8]
 
 
 def list_events() -> List[Dict[str, Any]]:
@@ -34,6 +34,37 @@ def list_events() -> List[Dict[str, Any]]:
     # Ordena pelo mais recente
     events.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     return events
+
+
+def list_events_for_user(user: dict) -> List[Dict[str, Any]]:
+    """
+    Retorna a lista de eventos permitidos para o usuário.
+    - Master: tem acesso a TODOS os eventos.
+    - Visualizador: tem permissão estrita para APENAS 1 evento associado.
+    - Colaborador / outros: tem acesso aos eventos liberados pelo Master.
+    """
+    all_events = list_events()
+    role = user.get("role", "visualizador")
+    if role == "master":
+        return all_events
+    
+    allowed = user.get("allowed_events", [])
+    if "*" in allowed:
+        return all_events
+
+    if role == "visualizador":
+        if allowed:
+            target_id = allowed[0]
+            matched = [e for e in all_events if e["id"] == target_id]
+            if matched:
+                return matched
+        return all_events[:1]
+
+    # Para colaboradores:
+    if not allowed:
+        return all_events[:1]
+    
+    return [e for e in all_events if e["id"] in allowed]
 
 
 def get_event(event_id: str) -> Optional[Dict[str, Any]]:

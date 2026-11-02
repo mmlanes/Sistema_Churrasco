@@ -1,6 +1,7 @@
 import streamlit as st
 from services.event_service import (
     list_events,
+    list_events_for_user,
     create_event,
     clone_event,
     get_event,
@@ -11,10 +12,12 @@ from ui.auth_view import can_edit, is_master
 
 
 def render_event_selector() -> str:
-    """Renderiza a seleção do evento ativo no topo ou sidebar, com opções de criação, clonagem, gestão de senha e exclusão."""
-    events = list_events()
+    """Renderiza a seleção do evento ativo no topo, respeitando rigorosamente as permissões de eventos concedidas pelo Master."""
+    current_user = st.session_state.get("user", {})
+    events = list_events_for_user(current_user)
+
     if not events:
-        st.warning("Nenhum evento encontrado.")
+        st.warning("⚠️ Nenhum evento autorizado para o seu usuário. Solicite permissão de acesso ao Administrador Master.")
         return ""
 
     event_ids = [e["id"] for e in events]
@@ -25,13 +28,26 @@ def render_event_selector() -> str:
         current_id = event_ids[0]
         st.session_state["active_event_id"] = current_id
 
+    # REGRA: Login de Visualização permite ver apenas o seu único evento associado
+    if current_user.get("role") == "visualizador":
+        chosen_id = events[0]["id"]
+        st.session_state["active_event_id"] = chosen_id
+        st.markdown(
+            f"<div style='background: rgba(127,127,127,0.08); padding: 8px 14px; border-radius: 6px; font-size: 0.95rem;'>"
+            f"🎯 <b>Evento Autorizado:</b> 📅 <b>{events[0]['name']}</b> ({events[0].get('date', '')}) &nbsp;|&nbsp; <i>(Acesso exclusivo a este evento)</i></div>",
+            unsafe_allow_html=True
+        )
+        return chosen_id
+
     selected_index = event_ids.index(current_id)
 
     # Colunas: Seletor, Novo, Clonar, Senha e Exclusão (se Master)
     if is_master():
         col1, col2, col3, col4, col5 = st.columns([2.8, 1.1, 1.1, 1.3, 0.9])
+    elif can_edit():
+        col1, col2, col3 = st.columns([3.5, 1.2, 1.2])
     else:
-        col1, col2, col3 = st.columns([4, 1.2, 1.2])
+        col1 = st.container()
 
     with col1:
         chosen_id = st.selectbox(
@@ -45,8 +61,8 @@ def render_event_selector() -> str:
             st.session_state["active_event_id"] = chosen_id
             st.rerun()
 
-    with col2:
-        if can_edit():
+    if can_edit():
+        with col2:
             with st.popover("➕ Novo Evento"):
                 st.subheader("Criar Novo Evento")
                 st.caption("Cria uma base de dados em pasta própria e isolada.")
@@ -66,7 +82,6 @@ def render_event_selector() -> str:
                             access_password=new_pwd.strip() or "churras2025"
                         )
                         st.session_state["active_event_id"] = ev["id"]
-                        # Auto-libera para a sessão atual
                         unlocked = st.session_state.setdefault("unlocked_events", set())
                         unlocked.add(ev["id"])
                         st.success(f"Evento '{new_name}' criado com sucesso!")
@@ -74,8 +89,7 @@ def render_event_selector() -> str:
                     else:
                         st.error("Informe um nome para o evento.")
 
-    with col3:
-        if can_edit():
+        with col3:
             with st.popover("📋 Clonar de Outro"):
                 st.subheader("Clonar Registros de Evento Existente")
                 st.caption("Copia consumíveis, fornecedores, receitas e tarefas mantendo total isolamento (sem vínculos).")

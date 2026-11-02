@@ -4,11 +4,12 @@ from services.auth_service import authenticate, get_all_users
 
 def init_session_state():
     if "user" not in st.session_state:
-        # Padrão: convidado / visualizador
+        # Padrão: convidado / visualizador associado ao evento padrão
         st.session_state["user"] = {
             "username": "convidado",
             "name": "Convidado (Modo Leitura)",
-            "role": "visualizador"
+            "role": "visualizador",
+            "allowed_events": ["churrasco_3_ele_2025"]
         }
     if "active_event_id" not in st.session_state:
         st.session_state["active_event_id"] = None
@@ -47,7 +48,8 @@ def render_user_header():
                 st.session_state["user"] = {
                     "username": "convidado",
                     "name": "Convidado (Modo Leitura)",
-                    "role": "visualizador"
+                    "role": "visualizador",
+                    "allowed_events": ["churrasco_3_ele_2025"]
                 }
                 st.rerun()
 

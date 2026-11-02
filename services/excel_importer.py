@@ -11,15 +11,13 @@ def bootstrap_demo_event_if_needed() -> str:
     Verifica se já existe o evento do churrasco histórico 3º ELE 2025.
     Se não existir, importa automaticamente a partir do arquivo Excel fornecido.
     """
-    event_id = "churrasco_3_ele_2025"
-    existing = get_event(event_id)
-    if existing:
-        if not existing.get("access_password"):
-            from services.event_service import update_event_password
-            update_event_password(event_id, "churras2025", "Sistema")
-        return event_id
+    from services.event_service import list_events
+    all_evs = list_events()
+    if all_evs:
+        # Já existe ao menos 1 evento cadastrado, não recria duplicatas
+        return all_evs[0]["id"]
 
-    # Cria o evento base
+    # Cria o evento base inicial
     meta = create_event(
         name="Churrasco 3º ELE 2025",
         description="Evento demonstrativo importado da planilha histórica 'Gastos com churrasco - 3º ELE 2025.xlsx'",
