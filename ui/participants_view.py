@@ -7,18 +7,23 @@ from ui.auth_view import can_edit
 
 def render_participants(event_id: str):
     st.title("👥 Participantes e Colaboradores")
-    st.caption("Gerenciamento de convidados, alunos, servidores e colaboradores com cadastro individual, em lote e edição direta na tabela.")
+    st.caption("Gerenciamento de convidados, alunos, servidores e definição de colaboradores sem retrabalho.")
 
     tab1, tab2 = st.tabs(["📋 Lista de Participantes (Consumidores)", "🛠️ Colaboradores do Evento"])
+
+    participants = get_event_data(event_id, "participants")
+    collaborators = get_event_data(event_id, "collaborators")
+    event_meta = get_event(event_id) or {}
+    default_fee = float(event_meta.get("default_fee_aluno", 25.0))
+
+    # Conjuntos de busca rápida para verificar colaboradores existentes
+    collab_names_set = {c["name"].strip().lower() for c in collaborators}
+    collab_pids_set = {c.get("participant_id") for c in collaborators if c.get("participant_id")}
 
     # ==========================
     # ABA 1: PARTICIPANTES
     # ==========================
     with tab1:
-        participants = get_event_data(event_id, "participants")
-        event_meta = get_event(event_id) or {}
-        default_fee = float(event_meta.get("default_fee_aluno", 25.0))
-        
         # Métricas gerais no topo
         total = len(participants)
         confirmados = len([p for p in participants if p.get("confirmed", True)])
@@ -58,11 +63,17 @@ def render_participants(event_id: str):
 
                     p_notes = st.text_input("Observações (Turma, restrição alimentar, telefone, etc.)", placeholder="Opcional")
 
+                    # Opção de já incluir na equipe de colaboradores se for categoria Colaborador
+                    c_collab_role = ""
+                    if p_cat == "Colaborador":
+                        c_collab_role = st.text_input("Função como Colaborador (opcional)", value="Apoio Geral")
+
                     if st.form_submit_button("➕ Cadastrar Participante", type="primary", use_container_width=True):
                         if p_name.strip():
                             user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            p_uuid = f"p_{str(uuid.uuid4())[:8]}"
                             new_participant = {
-                                "id": f"p_{str(uuid.uuid4())[:8]}",
+                                "id": p_uuid,
                                 "name": p_name.strip(),
                                 "category": p_cat,
                                 "confirmed": p_conf,
@@ -74,6 +85,19 @@ def render_participants(event_id: str):
                             }
                             participants.append(new_participant)
                             save_event_data(event_id, "participants", participants, user_name, f"Cadastrou participante '{p_name.strip()}'")
+
+                            # Se cadastrado como Colaborador, já vincula na equipe automaticamente
+                            if p_cat == "Colaborador" and p_name.strip().lower() not in collab_names_set:
+                                collaborators.append({
+                                    "id": f"c_{str(uuid.uuid4())[:8]}",
+                                    "participant_id": p_uuid,
+                                    "name": p_name.strip(),
+                                    "role": c_collab_role.strip() or "Apoio Geral",
+                                    "phone": "",
+                                    "email": ""
+                                })
+                                save_event_data(event_id, "collaborators", collaborators, user_name, f"Vinculou participante '{p_name.strip()}' à equipe de colaboradores")
+
                             st.success(f"Participante '{p_name.strip()}' cadastrado com sucesso!")
                             st.rerun()
                         else:
@@ -100,8 +124,9 @@ def render_participants(event_id: str):
                     if raw_lines:
                         user_name = st.session_state.get("user", {}).get("name", "Usuário")
                         for name in raw_lines:
+                            p_uuid = f"p_{str(uuid.uuid4())[:8]}"
                             participants.append({
-                                "id": f"p_{str(uuid.uuid4())[:8]}",
+                                "id": p_uuid,
                                 "name": name,
                                 "category": bulk_cat,
                                 "confirmed": bulk_conf,
@@ -111,7 +136,20 @@ def render_participants(event_id: str):
                                 "paid_amount": 0.0,
                                 "notes": "Cadastrado via importação em massa"
                             })
+                            if bulk_cat == "Colaborador" and name.lower() not in collab_names_set:
+                                collaborators.append({
+                                    "id": f"c_{str(uuid.uuid4())[:8]}",
+                                    "participant_id": p_uuid,
+                                    "name": name,
+                                    "role": "Apoio Geral / Colaborador",
+                                    "phone": "",
+                                    "email": ""
+                                })
+                                collab_names_set.add(name.lower())
+
                         save_event_data(event_id, "participants", participants, user_name, f"Cadastrou em massa {len(raw_lines)} participantes na categoria '{bulk_cat}'")
+                        if bulk_cat == "Colaborador":
+                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Vinculou {len(raw_lines)} participantes como colaboradores")
                         st.success(f"{len(raw_lines)} participante(s) cadastrados com sucesso!")
                         st.rerun()
                     else:
@@ -121,13 +159,14 @@ def render_participants(event_id: str):
             # 3. PAINEL DE AÇÕES RÁPIDAS EM LOTE
             # ========================================================
             if total > 0:
-                with st.expander("⚡ Ações Rápidas em Lote (Alterar Cota, Exclusão e Quitação)", expanded=False):
+                with st.expander("⚡ Ações Rápidas em Lote (Alterar Cota, Exclusão, Quitação e Promover Colaborador)", expanded=False):
                     st.caption("Execute operações em massa para múltiplos participantes cadastrados simultaneamente.")
 
-                    b_tab1, b_tab2, b_tab3 = st.tabs([
+                    b_tab1, b_tab2, b_tab3, b_tab4 = st.tabs([
                         "💰 Alterar Cota em Lote",
                         "🗑️ Excluir em Lote",
-                        "🟢 Dar Baixa / Quitar em Lote"
+                        "🟢 Dar Baixa / Quitar em Lote",
+                        "🛠️ Definir como Colaboradores em Lote"
                     ])
 
                     # 3.1 ALTERAR COTA EM LOTE
@@ -255,11 +294,77 @@ def render_participants(event_id: str):
                             else:
                                 st.error("Selecione ao menos um participante para dar baixa.")
 
+                    # 3.4 DEFINIR COMO COLABORADORES EM LOTE
+                    with b_tab4:
+                        st.write("**Definir múltiplos participantes como colaboradores da equipe:**")
+                        st.caption("Eles serão incluídos na equipe de colaboradores sem precisar recadastrar nomes.")
+
+                        b_collab_pids = st.multiselect(
+                            "Selecione os participantes:",
+                            options=[p["id"] for p in participants],
+                            format_func=lambda x: next(
+                                (f"{p['name']} ({p.get('category')})" + (" [Já é colaborador]" if p['name'].strip().lower() in collab_names_set else "")
+                                 for p in participants if p["id"] == x), x
+                            ),
+                            key="batch_promote_collab_sel"
+                        )
+
+                        b_preset_role = st.selectbox(
+                            "Função / Papel na Equipe para todos:",
+                            [
+                                "Equipe de Apoio Geral",
+                                "Mestre Churrasqueiro & Churrasqueira",
+                                "Chef de Acompanhamentos (Farofa / Vinagrete)",
+                                "Compras de Carnes & Bebidas",
+                                "Compras de Gelo & Descartáveis",
+                                "Pão de Alho & Sobremesas",
+                                "Recepção & Caixa",
+                                "Limpeza & Organização",
+                                "Outra Função Personalizada"
+                            ],
+                            key="batch_promote_role_sel"
+                        )
+                        if b_preset_role == "Outra Função Personalizada":
+                            b_final_role = st.text_input("Digite a função personalizada:", value="Apoio Geral", key="batch_custom_role_txt")
+                        else:
+                            b_final_role = b_preset_role
+
+                        b_chk_cat = st.checkbox("Atualizar categoria deles para 'Colaborador' na lista de participantes?", value=True, key="chk_batch_cat_promo")
+
+                        if st.button("🛠️ Definir Selecionados como Colaboradores", type="primary"):
+                            if b_collab_pids:
+                                user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                added_now = 0
+                                for pid in b_collab_pids:
+                                    part = next(p for p in participants if p["id"] == pid)
+                                    if part["name"].strip().lower() not in collab_names_set and part["id"] not in collab_pids_set:
+                                        collaborators.append({
+                                            "id": f"c_{str(uuid.uuid4())[:8]}",
+                                            "participant_id": part["id"],
+                                            "name": part["name"].strip(),
+                                            "role": b_final_role.strip() or "Apoio Geral",
+                                            "phone": "",
+                                            "email": ""
+                                        })
+                                        collab_names_set.add(part["name"].strip().lower())
+                                        collab_pids_set.add(part["id"])
+                                        added_now += 1
+                                    if b_chk_cat:
+                                        part["category"] = "Colaborador"
+
+                                save_event_data(event_id, "collaborators", collaborators, user_name, f"Definiu em lote {len(b_collab_pids)} participantes como colaboradores ('{b_final_role}')")
+                                if b_chk_cat:
+                                    save_event_data(event_id, "participants", participants, user_name, f"Atualizou categoria de {len(b_collab_pids)} participantes para 'Colaborador'")
+                                st.success(f"{len(b_collab_pids)} participante(s) definidos como colaboradores com sucesso!")
+                                st.rerun()
+                            else:
+                                st.error("Selecione ao menos um participante.")
+
             # ========================================================
             # 4. EDIÇÃO DIRETA NA TABELA (st.data_editor)
             # ========================================================
             st.subheader("📋 Tabela de Participantes")
-            st.info("💡 **Edição Direta:** Você pode alterar qualquer valor clicando diretamente nas células da tabela (nome, categoria, presença, cota, pago, forma e observações). Para adicionar participantes diretamente aqui, digite na última linha da tabela. Para excluir, selecione a linha e pressione `Delete`. Ao terminar, clique em **Salvar Alterações da Tabela**.")
+            st.info("💡 **Edição Direta:** Você pode alterar qualquer valor clicando diretamente nas células da tabela. **Dica:** Se você alterar a Categoria de uma pessoa para **Colaborador**, o sistema a adicionará automaticamente à equipe de colaboradores ao salvar!")
 
             col_s1, col_s2 = st.columns([1.5, 3])
             save_table_btn = col_s1.button("💾 Salvar Alterações da Tabela", type="primary", use_container_width=True)
@@ -324,11 +429,14 @@ def render_participants(event_id: str):
             if save_table_btn:
                 user_name = st.session_state.get("user", {}).get("name", "Usuário")
                 new_records = []
+                collabs_added = 0
+
                 for _, row in edited_df.iterrows():
                     name_val = str(row.get("name", "")).strip()
                     if not name_val:
                         continue  # ignora linhas em branco
                     row_id = str(row.get("id", "")).strip() or f"p_{str(uuid.uuid4())[:8]}"
+                    cat_val = str(row.get("category", "Aluno"))
                     is_paid = bool(row.get("paid", False))
                     row_fee = float(row.get("fee", 0.0))
                     row_paid_amt = float(row.get("paid_amount", 0.0))
@@ -340,7 +448,7 @@ def render_participants(event_id: str):
                     new_records.append({
                         "id": row_id,
                         "name": name_val,
-                        "category": str(row.get("category", "Aluno")),
+                        "category": cat_val,
                         "confirmed": bool(row.get("confirmed", True)),
                         "fee": row_fee,
                         "paid": is_paid,
@@ -349,8 +457,29 @@ def render_participants(event_id: str):
                         "notes": str(row.get("notes", "") or "")
                     })
 
+                    # Sincronização inteligente: Se a categoria for Colaborador, adiciona automaticamente à equipe!
+                    if cat_val == "Colaborador":
+                        if row_id not in collab_pids_set and name_val.lower() not in collab_names_set:
+                            collaborators.append({
+                                "id": f"c_{str(uuid.uuid4())[:8]}",
+                                "participant_id": row_id,
+                                "name": name_val,
+                                "role": "Apoio Geral / Colaborador",
+                                "phone": "",
+                                "email": ""
+                            })
+                            collab_names_set.add(name_val.lower())
+                            collab_pids_set.add(row_id)
+                            collabs_added += 1
+
                 save_event_data(event_id, "participants", new_records, user_name, f"Atualizou tabela de participantes diretamente no editor ({len(new_records)} registros)")
-                st.success("Tabela salva com sucesso!")
+                if collabs_added > 0:
+                    save_event_data(event_id, "collaborators", collaborators, user_name, f"Adicionou automaticamente {collabs_added} participante(s) à equipe de colaboradores")
+                
+                msg = "Tabela salva com sucesso!"
+                if collabs_added > 0:
+                    msg += f" ({collabs_added} pessoa(s) adicionadas à equipe de colaboradores)"
+                st.success(msg)
                 st.rerun()
 
             # ========================================================
@@ -365,6 +494,7 @@ def render_participants(event_id: str):
                         key="sel_p_indiv"
                     )
                     curr_p = next(p for p in participants if p["id"] == selected_p_id)
+                    is_already_collab = curr_p["name"].strip().lower() in collab_names_set or curr_p["id"] in collab_pids_set
 
                     with st.form("form_edit_participant"):
                         e1, e2, e3 = st.columns([2, 1, 1])
@@ -378,10 +508,16 @@ def render_participants(event_id: str):
                         new_method = e6.selectbox("Forma Pagamento", ["PIX", "Dinheiro", "Cartão", "Abatimento em Compras", "Pendente"], index=0)
                         new_notes = st.text_input("Observações", value=curr_p.get("notes", ""))
 
-                        ecol_a, ecol_b = st.columns(2)
-                        with ecol_a:
-                            save_btn = st.form_submit_button("Salvar Alterações", type="primary", use_container_width=True)
-                        with ecol_b:
+                        col_btn1, col_btn2, col_btn3 = st.columns(3)
+                        with col_btn1:
+                            save_btn = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+                        with col_btn2:
+                            promote_btn = st.form_submit_button(
+                                "🛠️ " + ("Já é Colaborador" if is_already_collab else "Tornar Colaborador"),
+                                disabled=is_already_collab,
+                                use_container_width=True
+                            )
+                        with col_btn3:
                             del_btn = st.form_submit_button("🗑️ Excluir Participante", use_container_width=True)
 
                         if save_btn:
@@ -396,7 +532,36 @@ def render_participants(event_id: str):
                             curr_p["notes"] = new_notes
 
                             save_event_data(event_id, "participants", participants, user_name, f"Atualizou participante '{new_name}'")
+
+                            # Se mudou categoria para Colaborador e não estava na lista, adiciona
+                            if new_cat == "Colaborador" and not is_already_collab:
+                                collaborators.append({
+                                    "id": f"c_{str(uuid.uuid4())[:8]}",
+                                    "participant_id": curr_p["id"],
+                                    "name": new_name.strip(),
+                                    "role": "Apoio Geral / Colaborador",
+                                    "phone": "",
+                                    "email": ""
+                                })
+                                save_event_data(event_id, "collaborators", collaborators, user_name, f"Adicionou '{new_name}' à equipe de colaboradores")
+
                             st.success(f"Participante '{new_name}' atualizado!")
+                            st.rerun()
+
+                        if promote_btn and not is_already_collab:
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            curr_p["category"] = "Colaborador"
+                            collaborators.append({
+                                "id": f"c_{str(uuid.uuid4())[:8]}",
+                                "participant_id": curr_p["id"],
+                                "name": curr_p["name"].strip(),
+                                "role": "Apoio Geral / Colaborador",
+                                "phone": "",
+                                "email": ""
+                            })
+                            save_event_data(event_id, "participants", participants, user_name, f"Definiu '{curr_p['name']}' como colaborador")
+                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Vinculou '{curr_p['name']}' à equipe de colaboradores")
+                            st.success(f"'{curr_p['name']}' agora faz parte da equipe de colaboradores!")
                             st.rerun()
 
                         if del_btn:
@@ -430,23 +595,147 @@ def render_participants(event_id: str):
     # ABA 2: COLABORADORES
     # ==========================
     with tab2:
-        collaborators = get_event_data(event_id, "collaborators")
-
         st.subheader("🛠️ Equipe de Colaboradores e Organizadores")
         st.caption("Pessoas responsáveis por compras, churrasqueira, preparo de acompanhamentos, limpeza e caixa.")
 
+        # Participantes que ainda não foram vinculados como colaboradores
+        available_participants = [
+            p for p in participants
+            if p["id"] not in collab_pids_set and p["name"].strip().lower() not in collab_names_set
+        ]
+
         if can_edit():
-            with st.expander("➕ Cadastrar Novo Colaborador", expanded=(len(collaborators) == 0)):
-                with st.form("form_add_collab", clear_on_submit=True):
+            # ========================================================
+            # 1. VINCULAR PARTICIPANTE EXISTENTE (SEM RECADASTRO)
+            # ========================================================
+            with st.expander("⚡ Definir Participante como Colaborador (Sem Recadastrar)", expanded=True):
+                if not participants:
+                    st.info("ℹ️ Não há participantes cadastrados no evento ainda. Cadastre participantes na primeira aba ou cadastre um colaborador externo abaixo.")
+                elif not available_participants:
+                    st.success("🎉 Todos os participantes cadastrados neste evento já fazem parte da equipe de colaboradores!")
+                else:
+                    st.write("**Selecione um participante já cadastrado para torná-lo colaborador:**")
+
+                    link_mode = st.radio(
+                        "Forma de Vinculação:",
+                        ["Individual (com função detalhada)", "Em Lote (múltiplos participantes)"],
+                        horizontal=True,
+                        key="tab2_link_mode"
+                    )
+
+                    if link_mode == "Individual (com função detalhada)":
+                        with st.form("form_link_individual_collab"):
+                            c_part_id = st.selectbox(
+                                "Escolha o Participante *",
+                                options=[p["id"] for p in available_participants],
+                                format_func=lambda x: next(f"👤 {p['name']} ({p.get('category')})" for p in available_participants if p["id"] == x),
+                                key="sel_part_to_collab_tab2"
+                            )
+                            chosen_part = next(p for p in available_participants if p["id"] == c_part_id)
+
+                            c_r1, c_r2 = st.columns([1, 1])
+                            preset_role = c_r1.selectbox(
+                                "Função / Responsabilidade no Churrasco *",
+                                [
+                                    "Mestre Churrasqueiro & Churrasqueira",
+                                    "Chef de Acompanhamentos (Farofa / Vinagrete)",
+                                    "Compras de Carnes & Insumos",
+                                    "Compras de Bebidas & Gelo",
+                                    "Pão de Alho & Sobremesas",
+                                    "Recepção & Fechamento de Caixa",
+                                    "Apoio Geral e Logística",
+                                    "Limpeza e Organização",
+                                    "Outra Função Personalizada"
+                                ],
+                                key="tab2_preset_role"
+                            )
+                            if preset_role == "Outra Função Personalizada":
+                                final_role_ind = c_r2.text_input("Especifique a função:", placeholder="Ex: Fotógrafo, Som, Decoração", key="tab2_custom_role")
+                            else:
+                                final_role_ind = preset_role
+
+                            c_c1, c_c2 = st.columns(2)
+                            c_phone = c_c1.text_input("WhatsApp / Telefone de Contato (opcional)", key="tab2_c_phone")
+                            c_email = c_c2.text_input("E-mail de Contato (opcional)", key="tab2_c_email")
+
+                            c_update_cat = st.checkbox("Atualizar categoria deste participante para 'Colaborador'?", value=True, key="tab2_c_update_cat")
+
+                            if st.form_submit_button("🚀 Confirmar e Definir como Colaborador", type="primary", use_container_width=True):
+                                user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                new_collab = {
+                                    "id": f"c_{str(uuid.uuid4())[:8]}",
+                                    "participant_id": chosen_part["id"],
+                                    "name": chosen_part["name"].strip(),
+                                    "role": final_role_ind.strip() or "Apoio Geral",
+                                    "phone": c_phone.strip(),
+                                    "email": c_email.strip()
+                                }
+                                collaborators.append(new_collab)
+                                save_event_data(event_id, "collaborators", collaborators, user_name, f"Definiu participante '{chosen_part['name']}' como colaborador ('{new_collab['role']}')")
+
+                                if c_update_cat and chosen_part.get("category") != "Colaborador":
+                                    for p in participants:
+                                        if p["id"] == chosen_part["id"]:
+                                            p["category"] = "Colaborador"
+                                    save_event_data(event_id, "participants", participants, user_name, f"Atualizou categoria de '{chosen_part['name']}' para 'Colaborador'")
+
+                                st.success(f"'{chosen_part['name']}' agora é colaborador com a função '{new_collab['role']}'!")
+                                st.rerun()
+
+                    else:
+                        # Modo Em Lote na Aba 2
+                        with st.form("form_link_batch_tab2"):
+                            selected_batch_pids = st.multiselect(
+                                "Selecione os participantes para tornar colaboradores *",
+                                options=[p["id"] for p in available_participants],
+                                format_func=lambda x: next(f"👤 {p['name']} ({p.get('category')})" for p in available_participants if p["id"] == x),
+                                key="tab2_batch_pids"
+                            )
+                            batch_role = st.text_input("Função / Papel da Equipe *", value="Equipe de Apoio e Logística", key="tab2_batch_role")
+                            batch_update_cat = st.checkbox("Atualizar categoria de todos para 'Colaborador'?", value=True, key="tab2_batch_chk_cat")
+
+                            if st.form_submit_button("🚀 Definir Selecionados como Colaboradores", type="primary", use_container_width=True):
+                                if selected_batch_pids:
+                                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                    for pid in selected_batch_pids:
+                                        p_obj = next(p for p in available_participants if p["id"] == pid)
+                                        collaborators.append({
+                                            "id": f"c_{str(uuid.uuid4())[:8]}",
+                                            "participant_id": p_obj["id"],
+                                            "name": p_obj["name"].strip(),
+                                            "role": batch_role.strip() or "Apoio Geral",
+                                            "phone": "",
+                                            "email": ""
+                                        })
+                                        if batch_update_cat:
+                                            for p in participants:
+                                                if p["id"] == pid:
+                                                    p["category"] = "Colaborador"
+
+                                    save_event_data(event_id, "collaborators", collaborators, user_name, f"Definiu em lote {len(selected_batch_pids)} participantes como colaboradores ('{batch_role}')")
+                                    if batch_update_cat:
+                                        save_event_data(event_id, "participants", participants, user_name, f"Atualizou categoria de {len(selected_batch_pids)} participantes para 'Colaborador'")
+
+                                    st.success(f"{len(selected_batch_pids)} participante(s) definidos como colaboradores com sucesso!")
+                                    st.rerun()
+                                else:
+                                    st.error("Selecione ao menos um participante.")
+
+            # ========================================================
+            # 2. CADASTRAR COLABORADOR EXTERNO (NÃO PARTICIPANTE)
+            # ========================================================
+            with st.expander("➕ Cadastrar Colaborador Externo (Não Participante)", expanded=False):
+                st.caption("Utilize para terceirizados ou voluntários que não estão na lista de consumidores (ex: churrasqueiro profissional contratado, garçom, DJ, etc.).")
+                with st.form("form_add_ext_collab", clear_on_submit=True):
                     c1, c2 = st.columns(2)
                     collab_name = c1.text_input("Nome do Colaborador *")
-                    collab_role = c2.text_input("Função / Papel (ex: Mestre Churrasqueiro, Chef da Farofa, Compras)")
+                    collab_role = c2.text_input("Função / Papel (ex: Churrasqueiro Profissional, DJ, Segurança)")
                     
                     c3, c4 = st.columns(2)
                     collab_phone = c3.text_input("WhatsApp / Telefone")
                     collab_email = c4.text_input("E-mail")
 
-                    if st.form_submit_button("Cadastrar Colaborador", type="primary"):
+                    if st.form_submit_button("Cadastrar Colaborador Externo", type="primary"):
                         if collab_name.strip():
                             user_name = st.session_state.get("user", {}).get("name", "Usuário")
                             new_c = {
@@ -457,18 +746,70 @@ def render_participants(event_id: str):
                                 "email": collab_email.strip()
                             }
                             collaborators.append(new_c)
-                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Cadastrou colaborador '{collab_name}'")
-                            st.success(f"Colaborador '{collab_name}' adicionado!")
+                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Cadastrou colaborador externo '{collab_name}'")
+                            st.success(f"Colaborador externo '{collab_name}' cadastrado!")
                             st.rerun()
                         else:
                             st.error("Informe o nome do colaborador.")
 
+            # ========================================================
+            # 3. EDITAR / DESVINCULAR COLABORADOR
+            # ========================================================
+            if collaborators:
+                with st.expander("✏️ Editar Função ou Desvincular Colaborador", expanded=False):
+                    sel_collab_id = st.selectbox(
+                        "Selecione o colaborador:",
+                        options=[c["id"] for c in collaborators],
+                        format_func=lambda x: next(f"{c['name']} - {c.get('role', 'Apoio')}" for c in collaborators if c["id"] == x),
+                        key="sel_edit_collab_tab2"
+                    )
+                    curr_c = next(c for c in collaborators if c["id"] == sel_collab_id)
+
+                    with st.form("form_edit_collab_details"):
+                        ed1, ed2 = st.columns(2)
+                        new_c_name = ed1.text_input("Nome", value=curr_c["name"])
+                        new_c_role = ed2.text_input("Função / Papel", value=curr_c.get("role", ""))
+
+                        ed3, ed4 = st.columns(2)
+                        new_c_phone = ed3.text_input("Telefone", value=curr_c.get("phone", ""))
+                        new_c_email = ed4.text_input("E-mail", value=curr_c.get("email", ""))
+
+                        ced_a, ced_b = st.columns(2)
+                        with ced_a:
+                            save_collab_btn = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+                        with ced_b:
+                            remove_collab_btn = st.form_submit_button("🗑️ Desvincular da Equipe", use_container_width=True)
+
+                        if save_collab_btn:
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            curr_c["name"] = new_c_name.strip()
+                            curr_c["role"] = new_c_role.strip()
+                            curr_c["phone"] = new_c_phone.strip()
+                            curr_c["email"] = new_c_email.strip()
+                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Atualizou dados do colaborador '{curr_c['name']}'")
+                            st.success("Colaborador atualizado com sucesso!")
+                            st.rerun()
+
+                        if remove_collab_btn:
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            collaborators = [c for c in collaborators if c["id"] != sel_collab_id]
+                            save_event_data(event_id, "collaborators", collaborators, user_name, f"Desvinculou colaborador '{curr_c['name']}' da equipe")
+                            st.warning(f"'{curr_c['name']}' foi desvinculado da equipe de colaboradores (o participante continua ativo no evento).")
+                            st.rerun()
+
+        # ========================================================
+        # TABELA DE COLABORADORES
+        # ========================================================
         if collaborators:
+            part_dict_by_name = {p["name"].strip().lower(): p for p in participants}
+            part_dict_by_id = {p["id"]: p for p in participants}
+
             df_collabs = pd.DataFrame([
                 {
                     "Nome": c["name"],
                     "Função / Responsabilidade": c.get("role", "Apoio"),
-                    "Telefone / Contato": c.get("phone", "-"),
+                    "Origem": "👤 Participante Vinculado" if (c.get("participant_id") in part_dict_by_id or c["name"].strip().lower() in part_dict_by_name) else "🏢 Externo (Contratado/Apoio)",
+                    "Telefone / Contato": c.get("phone") or (part_dict_by_id.get(c.get("participant_id"), {}).get("notes", "-") if c.get("participant_id") else "-"),
                     "E-mail": c.get("email", "-")
                 }
                 for c in collaborators
