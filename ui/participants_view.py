@@ -1,13 +1,13 @@
 import uuid
 import pandas as pd
 import streamlit as st
-from services.event_service import get_event_data, save_event_data
+from services.event_service import get_event, get_event_data, save_event_data
 from ui.auth_view import can_edit
 
 
 def render_participants(event_id: str):
     st.title("👥 Participantes e Colaboradores")
-    st.caption("Gerenciamento de convidados, alunos, servidores e colaboradores com edição direta na tabela e ações em lote.")
+    st.caption("Gerenciamento de convidados, alunos, servidores e colaboradores com cadastro individual, em lote e edição direta na tabela.")
 
     tab1, tab2 = st.tabs(["📋 Lista de Participantes (Consumidores)", "🛠️ Colaboradores do Evento"])
 
@@ -16,6 +16,8 @@ def render_participants(event_id: str):
     # ==========================
     with tab1:
         participants = get_event_data(event_id, "participants")
+        event_meta = get_event(event_id) or {}
+        default_fee = float(event_meta.get("default_fee_aluno", 25.0))
         
         # Métricas gerais no topo
         total = len(participants)
@@ -32,179 +34,232 @@ def render_participants(event_id: str):
         st.markdown("---")
 
         if can_edit():
+            # Notificação se o evento estiver vazio
+            if total == 0:
+                st.info("👋 **Este evento ainda não possui participantes cadastrados.** Use o formulário **➕ Adicionar Novo Participante** logo abaixo ou importe vários nomes de uma só vez no **🚀 Cadastro em Massa**.")
+
             # ========================================================
-            # PAINEL DE AÇÕES EM LOTE
+            # 1. FORMULÁRIO: ADICIONAR NOVO PARTICIPANTE (INDIVIDUAL)
             # ========================================================
-            with st.expander("⚡ Ações Rápidas em Lote (Alterar Cota, Exclusão, Baixa e Importação)", expanded=False):
-                st.caption("Execute operações em massa para múltiplos participantes simultaneamente.")
+            with st.expander("➕ Adicionar Novo Participante", expanded=(total == 0)):
+                st.subheader("Cadastrar Participante")
+                st.caption("Preencha os dados e clique em 'Cadastrar Participante'.")
 
-                b_tab1, b_tab2, b_tab3, b_tab4 = st.tabs([
-                    "💰 Alterar Cota em Lote",
-                    "🗑️ Excluir em Lote",
-                    "🟢 Dar Baixa / Quitar em Lote",
-                    "🚀 Cadastro em Massa (Colar Lista)"
-                ])
+                with st.form("form_add_single_participant", clear_on_submit=True):
+                    c1, c2, c3 = st.columns([2, 1, 1])
+                    p_name = c1.text_input("Nome Completo *", placeholder="Ex: Carlos Silva")
+                    p_cat = c2.selectbox("Categoria", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"], index=0)
+                    p_fee = c3.number_input("Valor da Cota (R$)", value=default_fee, step=5.0, min_value=0.0)
 
-                # 1. ALTERAR COTA EM LOTE
-                with b_tab1:
-                    st.write("**Atualizar o valor da cota para um grupo de participantes:**")
-                    c_cota1, c_cota2 = st.columns([1, 2])
-                    new_batch_fee = c_cota1.number_input("Novo Valor da Cota (R$):", value=25.0, step=5.0, min_value=0.0)
-                    batch_target = c_cota2.selectbox(
-                        "Aplicar para quem?",
-                        [
-                            "Todos os Participantes",
-                            "Apenas Alunos",
-                            "Apenas Servidores/Professores",
-                            "Apenas Convidados",
-                            "Apenas Pendentes de Pagamento",
-                            "Seleção Específica de Participantes"
-                        ]
-                    )
+                    c4, c5, c6 = st.columns([1, 1, 2])
+                    p_conf = c4.checkbox("Presença Confirmada?", value=True)
+                    p_paid = c5.checkbox("Já efetuou o pagamento?", value=False)
+                    p_method = c6.selectbox("Forma de Pagamento", ["PIX", "Dinheiro", "Cartão", "Abatimento em Compras", "Pendente"])
 
-                    selected_fee_pids = []
-                    if batch_target == "Seleção Específica de Participantes":
-                        selected_fee_pids = st.multiselect(
-                            "Escolha os participantes:",
-                            options=[p["id"] for p in participants],
-                            format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - Cota: R$ {p.get('fee')}" for p in participants if p["id"] == x), x)
-                        )
+                    p_notes = st.text_input("Observações (Turma, restrição alimentar, telefone, etc.)", placeholder="Opcional")
 
-                    sync_paid_amount = st.checkbox("Ajustar também o valor pago de quem já havia quitado?", value=False)
+                    if st.form_submit_button("➕ Cadastrar Participante", type="primary", use_container_width=True):
+                        if p_name.strip():
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            new_participant = {
+                                "id": f"p_{str(uuid.uuid4())[:8]}",
+                                "name": p_name.strip(),
+                                "category": p_cat,
+                                "confirmed": p_conf,
+                                "fee": float(p_fee),
+                                "paid": p_paid,
+                                "payment_method": p_method if p_paid else "Pendente",
+                                "paid_amount": float(p_fee) if p_paid else 0.0,
+                                "notes": p_notes.strip()
+                            }
+                            participants.append(new_participant)
+                            save_event_data(event_id, "participants", participants, user_name, f"Cadastrou participante '{p_name.strip()}'")
+                            st.success(f"Participante '{p_name.strip()}' cadastrado com sucesso!")
+                            st.rerun()
+                        else:
+                            st.error("Informe o nome completo do participante.")
 
-                    if st.button("💰 Aplicar Nova Cota em Lote", type="primary"):
+            # ========================================================
+            # 2. CADASTRO EM MASSA (COLAR LISTA)
+            # ========================================================
+            with st.expander("🚀 Cadastro em Massa (Colar Lista de Nomes)", expanded=False):
+                st.subheader("Importar Nomes Rapidamente")
+                st.caption("Cole uma lista com múltiplos nomes (um por linha). O sistema cadastra todos com 1 clique.")
+                names_text = st.text_area(
+                    "Cole a lista de nomes:",
+                    placeholder="Carlos Silva\nMariana Souza\nFelipe Santos\nBruna Oliveira\nLucas Pereira",
+                    height=130
+                )
+                c_m1, c_m2, c_m3 = st.columns(3)
+                bulk_cat = c_m1.selectbox("Categoria para todos:", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"], key="bulk_cat")
+                bulk_fee = c_m2.number_input("Cota Inicial (R$):", value=default_fee, step=5.0, min_value=0.0, key="bulk_fee")
+                bulk_conf = c_m3.checkbox("Presença Confirmada?", value=True, key="bulk_conf")
+
+                if st.button("🚀 Cadastrar Todos os Nomes da Lista", type="primary"):
+                    raw_lines = [line.strip() for line in names_text.splitlines() if line.strip()]
+                    if raw_lines:
                         user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                        updated_count = 0
-                        for p in participants:
-                            should_update = False
-                            if batch_target == "Todos os Participantes":
-                                should_update = True
-                            elif batch_target == "Apenas Alunos" and p.get("category") == "Aluno":
-                                should_update = True
-                            elif batch_target == "Apenas Servidores/Professores" and p.get("category") == "Servidor/Professor":
-                                should_update = True
-                            elif batch_target == "Apenas Convidados" and p.get("category") == "Convidado":
-                                should_update = True
-                            elif batch_target == "Apenas Pendentes de Pagamento" and not p.get("paid"):
-                                should_update = True
-                            elif batch_target == "Seleção Específica de Participantes" and p["id"] in selected_fee_pids:
-                                should_update = True
-
-                            if should_update:
-                                p["fee"] = float(new_batch_fee)
-                                if sync_paid_amount and p.get("paid"):
-                                    p["paid_amount"] = float(new_batch_fee)
-                                updated_count += 1
-
-                        save_event_data(event_id, "participants", participants, user_name, f"Atualizou em lote a cota de {updated_count} participantes para R$ {new_batch_fee:.2f}")
-                        st.success(f"Cota de {updated_count} participante(s) atualizada com sucesso para R$ {new_batch_fee:,.2f}!")
+                        for name in raw_lines:
+                            participants.append({
+                                "id": f"p_{str(uuid.uuid4())[:8]}",
+                                "name": name,
+                                "category": bulk_cat,
+                                "confirmed": bulk_conf,
+                                "fee": float(bulk_fee),
+                                "paid": False,
+                                "payment_method": "Pendente",
+                                "paid_amount": 0.0,
+                                "notes": "Cadastrado via importação em massa"
+                            })
+                        save_event_data(event_id, "participants", participants, user_name, f"Cadastrou em massa {len(raw_lines)} participantes na categoria '{bulk_cat}'")
+                        st.success(f"{len(raw_lines)} participante(s) cadastrados com sucesso!")
                         st.rerun()
-
-                # 2. EXCLUIR EM LOTE
-                with b_tab2:
-                    st.write("**Excluir múltiplos participantes de uma só vez:**")
-                    filter_del_mode = st.radio(
-                        "Forma de Seleção para Exclusão:",
-                        ["Selecionar Manualmente", "Todos os Não Confirmados (Ausentes)", "Todos de uma Categoria"],
-                        horizontal=True
-                    )
-
-                    del_candidates = []
-                    if filter_del_mode == "Selecionar Manualmente":
-                        del_candidates = st.multiselect(
-                            "Selecione os participantes a serem excluídos:",
-                            options=[p["id"] for p in participants],
-                            format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - {'Pago' if p.get('paid') else 'Pendente'}" for p in participants if p["id"] == x), x)
-                        )
-                    elif filter_del_mode == "Todos os Não Confirmados (Ausentes)":
-                        del_candidates = [p["id"] for p in participants if not p.get("confirmed")]
-                        st.write(f"Participantes não confirmados encontrados: **{len(del_candidates)} pessoas**.")
                     else:
-                        cat_to_del = st.selectbox("Escolha a categoria a excluir:", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"])
-                        del_candidates = [p["id"] for p in participants if p.get("category") == cat_to_del]
-                        st.write(f"Participantes na categoria '{cat_to_del}': **{len(del_candidates)} pessoas**.")
+                        st.error("Cole ao menos um nome na caixa acima para cadastrar.")
 
-                    if del_candidates:
-                        confirm_batch_del = st.checkbox(f"⚠️ Confirmar a exclusão definitiva de {len(del_candidates)} participante(s)?", value=False)
-                        if st.button("🗑️ Excluir Participantes Selecionados", type="secondary"):
-                            if confirm_batch_del:
+            # ========================================================
+            # 3. PAINEL DE AÇÕES RÁPIDAS EM LOTE
+            # ========================================================
+            if total > 0:
+                with st.expander("⚡ Ações Rápidas em Lote (Alterar Cota, Exclusão e Quitação)", expanded=False):
+                    st.caption("Execute operações em massa para múltiplos participantes cadastrados simultaneamente.")
+
+                    b_tab1, b_tab2, b_tab3 = st.tabs([
+                        "💰 Alterar Cota em Lote",
+                        "🗑️ Excluir em Lote",
+                        "🟢 Dar Baixa / Quitar em Lote"
+                    ])
+
+                    # 3.1 ALTERAR COTA EM LOTE
+                    with b_tab1:
+                        st.write("**Atualizar o valor da cota para um grupo de participantes:**")
+                        c_cota1, c_cota2 = st.columns([1, 2])
+                        new_batch_fee = c_cota1.number_input("Novo Valor da Cota (R$):", value=default_fee, step=5.0, min_value=0.0, key="batch_new_fee")
+                        batch_target = c_cota2.selectbox(
+                            "Aplicar para quem?",
+                            [
+                                "Todos os Participantes",
+                                "Apenas Alunos",
+                                "Apenas Servidores/Professores",
+                                "Apenas Convidados",
+                                "Apenas Pendentes de Pagamento",
+                                "Seleção Específica de Participantes"
+                            ],
+                            key="batch_target_sel"
+                        )
+
+                        selected_fee_pids = []
+                        if batch_target == "Seleção Específica de Participantes":
+                            selected_fee_pids = st.multiselect(
+                                "Escolha os participantes:",
+                                options=[p["id"] for p in participants],
+                                format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - Cota: R$ {p.get('fee')}" for p in participants if p["id"] == x), x)
+                            )
+
+                        sync_paid_amount = st.checkbox("Ajustar também o valor pago de quem já havia quitado?", value=False, key="chk_sync_paid")
+
+                        if st.button("💰 Aplicar Nova Cota em Lote", type="primary"):
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            updated_count = 0
+                            for p in participants:
+                                should_update = False
+                                if batch_target == "Todos os Participantes":
+                                    should_update = True
+                                elif batch_target == "Apenas Alunos" and p.get("category") == "Aluno":
+                                    should_update = True
+                                elif batch_target == "Apenas Servidores/Professores" and p.get("category") == "Servidor/Professor":
+                                    should_update = True
+                                elif batch_target == "Apenas Convidados" and p.get("category") == "Convidado":
+                                    should_update = True
+                                elif batch_target == "Apenas Pendentes de Pagamento" and not p.get("paid"):
+                                    should_update = True
+                                elif batch_target == "Seleção Específica de Participantes" and p["id"] in selected_fee_pids:
+                                    should_update = True
+
+                                if should_update:
+                                    p["fee"] = float(new_batch_fee)
+                                    if sync_paid_amount and p.get("paid"):
+                                        p["paid_amount"] = float(new_batch_fee)
+                                    updated_count += 1
+
+                            save_event_data(event_id, "participants", participants, user_name, f"Atualizou em lote a cota de {updated_count} participantes para R$ {new_batch_fee:.2f}")
+                            st.success(f"Cota de {updated_count} participante(s) atualizada com sucesso para R$ {new_batch_fee:,.2f}!")
+                            st.rerun()
+
+                    # 3.2 EXCLUIR EM LOTE
+                    with b_tab2:
+                        st.write("**Excluir múltiplos participantes de uma só vez:**")
+                        filter_del_mode = st.radio(
+                            "Forma de Seleção para Exclusão:",
+                            ["Selecionar Manualmente", "Todos os Não Confirmados (Ausentes)", "Todos de uma Categoria"],
+                            horizontal=True,
+                            key="batch_del_mode"
+                        )
+
+                        del_candidates = []
+                        if filter_del_mode == "Selecionar Manualmente":
+                            del_candidates = st.multiselect(
+                                "Selecione os participantes a serem excluídos:",
+                                options=[p["id"] for p in participants],
+                                format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - {'Pago' if p.get('paid') else 'Pendente'}" for p in participants if p["id"] == x), x),
+                                key="batch_del_select"
+                            )
+                        elif filter_del_mode == "Todos os Não Confirmados (Ausentes)":
+                            del_candidates = [p["id"] for p in participants if not p.get("confirmed")]
+                            st.write(f"Participantes não confirmados encontrados: **{len(del_candidates)} pessoas**.")
+                        else:
+                            cat_to_del = st.selectbox("Escolha a categoria a excluir:", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"], key="batch_del_cat")
+                            del_candidates = [p["id"] for p in participants if p.get("category") == cat_to_del]
+                            st.write(f"Participantes na categoria '{cat_to_del}': **{len(del_candidates)} pessoas**.")
+
+                        if del_candidates:
+                            confirm_batch_del = st.checkbox(f"⚠️ Confirmar a exclusão definitiva de {len(del_candidates)} participante(s)?", value=False, key="chk_confirm_del")
+                            if st.button("🗑️ Excluir Participantes Selecionados", type="secondary"):
+                                if confirm_batch_del:
+                                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                    count_before = len(participants)
+                                    participants = [p for p in participants if p["id"] not in del_candidates]
+                                    removed_count = count_before - len(participants)
+                                    save_event_data(event_id, "participants", participants, user_name, f"Excluiu {removed_count} participantes em lote")
+                                    st.warning(f"{removed_count} participante(s) removido(s) com sucesso!")
+                                    st.rerun()
+                                else:
+                                    st.error("Marque a caixa de confirmação acima para prosseguir.")
+                        else:
+                            st.info("Nenhum participante selecionado para exclusão.")
+
+                    # 3.3 QUITAÇÃO EM LOTE
+                    with b_tab3:
+                        st.write("**Dar baixa de pagamento para vários participantes de uma só vez:**")
+                        c_q1, c_q2 = st.columns([2, 1])
+                        unpaid_participants = [p for p in participants if not p.get("paid")]
+                        selected_quit = c_q1.multiselect(
+                            "Selecione quem efetuou o pagamento:",
+                            options=[p["id"] for p in unpaid_participants],
+                            format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - Cota R$ {p.get('fee')}" for p in unpaid_participants if p["id"] == x), x),
+                            key="batch_quit_select"
+                        )
+                        forma_quit = c_q2.selectbox("Forma de Pagamento:", ["PIX", "Dinheiro", "Cartão", "Transferência", "Abatimento em Compras"], key="batch_quit_forma")
+
+                        if st.button("🟢 Confirmar Quitação em Lote", type="primary"):
+                            if selected_quit:
                                 user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                                count_before = len(participants)
-                                participants = [p for p in participants if p["id"] not in del_candidates]
-                                removed_count = count_before - len(participants)
-                                save_event_data(event_id, "participants", participants, user_name, f"Excluiu {removed_count} participantes em lote")
-                                st.warning(f"{removed_count} participante(s) removido(s) com sucesso!")
+                                for p in participants:
+                                    if p["id"] in selected_quit:
+                                        p["paid"] = True
+                                        p["payment_method"] = forma_quit
+                                        p["paid_amount"] = float(p.get("fee", default_fee))
+                                save_event_data(event_id, "participants", participants, user_name, f"Deu baixa de pagamento em lote para {len(selected_quit)} participantes via {forma_quit}")
+                                st.success(f"Pagamento de {len(selected_quit)} participante(s) confirmado com sucesso!")
                                 st.rerun()
                             else:
-                                st.error("Marque a caixa de confirmação acima para prosseguir.")
-                    else:
-                        st.info("Nenhum participante selecionado para exclusão.")
+                                st.error("Selecione ao menos um participante para dar baixa.")
 
-                # 3. QUITAÇÃO / PAGAMENTOS EM LOTE
-                with b_tab3:
-                    st.write("**Dar baixa de pagamento para vários participantes de uma só vez:**")
-                    c_q1, c_q2 = st.columns([2, 1])
-                    unpaid_participants = [p for p in participants if not p.get("paid")]
-                    selected_quit = c_q1.multiselect(
-                        "Selecione quem efetuou o pagamento:",
-                        options=[p["id"] for p in unpaid_participants],
-                        format_func=lambda x: next((f"{p['name']} ({p.get('category')}) - Cota R$ {p.get('fee')}" for p in unpaid_participants if p["id"] == x), x)
-                    )
-                    forma_quit = c_q2.selectbox("Forma de Pagamento:", ["PIX", "Dinheiro", "Cartão", "Transferência", "Abatimento em Compras"])
-
-                    if st.button("🟢 Confirmar Quitação em Lote", type="primary"):
-                        if selected_quit:
-                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                            for p in participants:
-                                if p["id"] in selected_quit:
-                                    p["paid"] = True
-                                    p["payment_method"] = forma_quit
-                                    p["paid_amount"] = float(p.get("fee", 25.0))
-                            save_event_data(event_id, "participants", participants, user_name, f"Deu baixa de pagamento em lote para {len(selected_quit)} participantes via {forma_quit}")
-                            st.success(f"Pagamento de {len(selected_quit)} participante(s) confirmado com sucesso!")
-                            st.rerun()
-                        else:
-                            st.error("Selecione ao menos um participante para dar baixa.")
-
-                # 4. CADASTRO EM MASSA (COLAR LISTA)
-                with b_tab4:
-                    st.write("**Importar rapidamente uma lista de nomes:**")
-                    st.caption("Cole os nomes abaixo (um por linha). O sistema cadastra todos com 1 clique.")
-                    names_text = st.text_area("Lista de Nomes:", placeholder="Carlos Silva\nMariana Souza\nFelipe Santos\nBruna Oliveira")
-                    c_m1, c_m2, c_m3 = st.columns(3)
-                    bulk_cat = c_m1.selectbox("Categoria:", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"], key="bulk_cat")
-                    bulk_fee = c_m2.number_input("Cota Inicial (R$):", value=25.0, step=5.0, key="bulk_fee")
-                    bulk_conf = c_m3.checkbox("Presença Confirmada?", value=True, key="bulk_conf")
-
-                    if st.button("🚀 Cadastrar Lista em Massa", type="primary"):
-                        raw_lines = [line.strip() for line in names_text.splitlines() if line.strip()]
-                        if raw_lines:
-                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                            for name in raw_lines:
-                                participants.append({
-                                    "id": f"p_{str(uuid.uuid4())[:8]}",
-                                    "name": name,
-                                    "category": bulk_cat,
-                                    "confirmed": bulk_conf,
-                                    "fee": float(bulk_fee),
-                                    "paid": False,
-                                    "payment_method": "Pendente",
-                                    "paid_amount": 0.0,
-                                    "notes": "Cadastrado via importação em massa"
-                                })
-                            save_event_data(event_id, "participants", participants, user_name, f"Cadastrou em massa {len(raw_lines)} participantes na categoria '{bulk_cat}'")
-                            st.success(f"{len(raw_lines)} participante(s) cadastrados com sucesso!")
-                            st.rerun()
-                        else:
-                            st.error("Cole ao menos um nome para importar.")
-
-        # ========================================================
-        # EDIÇÃO DIRETA NA TABELA (st.data_editor)
-        # ========================================================
-        st.subheader("📋 Tabela de Participantes")
-        
-        if can_edit():
-            st.info("💡 **Edição Direta:** Você pode alterar qualquer dado clicando diretamente nas células da tabela (nome, categoria, presença, cota, pago, forma e observações). Para adicionar participantes, vá até a última linha. Para excluir linhas, selecione-as e pressione `Delete`. Ao terminar, clique em **Salvar Alterações da Tabela**.")
+            # ========================================================
+            # 4. EDIÇÃO DIRETA NA TABELA (st.data_editor)
+            # ========================================================
+            st.subheader("📋 Tabela de Participantes")
+            st.info("💡 **Edição Direta:** Você pode alterar qualquer valor clicando diretamente nas células da tabela (nome, categoria, presença, cota, pago, forma e observações). Para adicionar participantes diretamente aqui, digite na última linha da tabela. Para excluir, selecione a linha e pressione `Delete`. Ao terminar, clique em **Salvar Alterações da Tabela**.")
 
             col_s1, col_s2 = st.columns([1.5, 3])
             save_table_btn = col_s1.button("💾 Salvar Alterações da Tabela", type="primary", use_container_width=True)
@@ -216,7 +271,7 @@ def render_participants(event_id: str):
                     "name": p.get("name", ""),
                     "category": p.get("category", "Aluno"),
                     "confirmed": bool(p.get("confirmed", True)),
-                    "fee": float(p.get("fee", 25.0)),
+                    "fee": float(p.get("fee", default_fee)),
                     "paid": bool(p.get("paid", False)),
                     "payment_method": p.get("payment_method", "Pendente"),
                     "paid_amount": float(p.get("paid_amount", 0.0)),
@@ -224,6 +279,19 @@ def render_participants(event_id: str):
                 }
                 for p in participants
             ])
+
+            if df_editable.empty:
+                df_editable = pd.DataFrame([{
+                    "id": f"p_{str(uuid.uuid4())[:8]}",
+                    "name": "",
+                    "category": "Aluno",
+                    "confirmed": True,
+                    "fee": default_fee,
+                    "paid": False,
+                    "payment_method": "Pendente",
+                    "paid_amount": 0.0,
+                    "notes": ""
+                }])
 
             edited_df = st.data_editor(
                 df_editable,
@@ -285,9 +353,11 @@ def render_participants(event_id: str):
                 st.success("Tabela salva com sucesso!")
                 st.rerun()
 
-            # Opção de Edição Individual Detalhada (mantida conforme solicitado)
-            with st.expander("✏️ Edição Individual Detalhada (Formulário)"):
-                if participants:
+            # ========================================================
+            # 5. EDIÇÃO INDIVIDUAL DETALHADA (SE JÁ HOUVER PARTICIPANTES)
+            # ========================================================
+            if total > 0:
+                with st.expander("✏️ Editar ou Excluir Participante Específico (Formulário)"):
                     selected_p_id = st.selectbox(
                         "Selecione o participante:",
                         options=[p["id"] for p in participants],
@@ -300,7 +370,7 @@ def render_participants(event_id: str):
                         e1, e2, e3 = st.columns([2, 1, 1])
                         new_name = e1.text_input("Nome", value=curr_p["name"])
                         new_cat = e2.selectbox("Categoria", ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"], index=["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"].index(curr_p.get("category", "Aluno")) if curr_p.get("category") in ["Aluno", "Servidor/Professor", "Convidado", "Colaborador", "Criança"] else 0)
-                        new_fee = e3.number_input("Valor da Cota (R$)", value=float(curr_p.get("fee", 25.0)), step=5.0)
+                        new_fee = e3.number_input("Valor da Cota (R$)", value=float(curr_p.get("fee", default_fee)), step=5.0)
 
                         e4, e5, e6 = st.columns([1, 1, 2])
                         new_conf = e4.checkbox("Confirmado", value=bool(curr_p.get("confirmed", True)))
@@ -337,6 +407,7 @@ def render_participants(event_id: str):
                             st.rerun()
         else:
             # Modo Somente Leitura
+            st.warning("👀 **Você está conectado em Modo Visualizador (Somente Leitura).** Para adicionar ou editar participantes, faça login como **Organizador Master** ou **Colaborador** usando o botão **🔑 Fazer Login** no canto superior direito.")
             if participants:
                 df_parts = pd.DataFrame([
                     {
@@ -353,7 +424,7 @@ def render_participants(event_id: str):
                 ])
                 st.dataframe(df_parts, use_container_width=True, hide_index=True)
             else:
-                st.info("Nenhum participante registrado neste evento.")
+                st.info("Nenhum participante registrado neste evento ainda.")
 
     # ==========================
     # ABA 2: COLABORADORES
@@ -365,7 +436,7 @@ def render_participants(event_id: str):
         st.caption("Pessoas responsáveis por compras, churrasqueira, preparo de acompanhamentos, limpeza e caixa.")
 
         if can_edit():
-            with st.expander("➕ Cadastrar Novo Colaborador"):
+            with st.expander("➕ Cadastrar Novo Colaborador", expanded=(len(collaborators) == 0)):
                 with st.form("form_add_collab", clear_on_submit=True):
                     c1, c2 = st.columns(2)
                     collab_name = c1.text_input("Nome do Colaborador *")
@@ -404,4 +475,4 @@ def render_participants(event_id: str):
             ])
             st.dataframe(df_collabs, use_container_width=True, hide_index=True)
         else:
-            st.info("Nenhum colaborador registrado ainda.")
+            st.info("Nenhum colaborador registrado ainda neste evento.")

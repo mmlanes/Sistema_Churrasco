@@ -70,5 +70,143 @@
     "user": "admin",
     "action": "ALTERAR_SENHA_EVENTO",
     "details": "A senha geral de acesso do evento foi alterada com sucesso."
+  },
+  {
+    "timestamp": "2026-11-02 12:57:51",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'ANTÔNIO MÁRCIO'"
+  },
+  {
+    "timestamp": "2026-11-02 12:58:19",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'BEATRIZ VITÓRIA'"
+  },
+  {
+    "timestamp": "2026-11-02 12:58:51",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'BERNARDO'"
+  },
+  {
+    "timestamp": "2026-11-02 12:59:19",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'BIANCA'"
+  },
+  {
+    "timestamp": "2026-11-02 12:59:33",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'BRUNA'"
+  },
+  {
+    "timestamp": "2026-11-02 12:59:51",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'CECILIA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:00:08",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'DANIELA VITÓRIA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:00:27",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'GABRIEL FERREIRA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:00:45",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'GABRIEL GOMES'"
+  },
+  {
+    "timestamp": "2026-11-02 13:01:06",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'GLAUCYO LUIZ'"
+  },
+  {
+    "timestamp": "2026-11-02 13:01:23",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'HENRY'"
+  },
+  {
+    "timestamp": "2026-11-02 13:01:38",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'IGOR'"
+  },
+  {
+    "timestamp": "2026-11-02 13:02:00",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'JOÃO GABRIEL'"
+  },
+  {
+    "timestamp": "2026-11-02 13:02:22",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'JÚLIA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:02:45",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'LETÍCIA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:03:01",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'LUIZA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:03:16",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'MARÇAL'"
+  },
+  {
+    "timestamp": "2026-11-02 13:03:44",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'MARIA EDUARDA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:04:07",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'MILENA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:04:23",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'NICOLLY'"
+  },
+  {
+    "timestamp": "2026-11-02 13:04:46",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'OTAVIO'"
+  },
+  {
+    "timestamp": "2026-11-02 13:05:02",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'REBECA'"
+  },
+  {
+    "timestamp": "2026-11-02 13:05:26",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'THIAGO'"
   }
 ]

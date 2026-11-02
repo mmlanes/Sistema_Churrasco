@@ -51,7 +51,7 @@ def render_consumables(event_id: str):
 
         # Formulário para Adicionar Consumível
         if can_edit():
-            with st.expander("➕ Adicionar Novo Consumível"):
+            with st.expander("➕ Adicionar Novo Consumível", expanded=(len(consumables) == 0)):
                 with st.form("form_add_consumable", clear_on_submit=True):
                     c1, c2, c3 = st.columns([2, 1, 1])
                     c_name = c1.text_input("Nome do Item (ex: Coca-cola 2L, Alcatra, Cerveja Lata, Pão de Alho)")

@@ -109,7 +109,7 @@ def render_tasks(event_id: str):
         
         # Adicionar Nova Tarefa
         if can_edit():
-            with st.expander("➕ Atribuir Nova Tarefa"):
+            with st.expander("➕ Atribuir Nova Tarefa", expanded=(len(tasks) == 0)):
                 with st.form("form_add_task", clear_on_submit=True):
                     t1, t2 = st.columns([2, 1])
                     task_title = t1.text_input("Título da Tarefa (ex: Fazer Farofa, Comprar Pão de Alho, Comprar Gelo) *")
