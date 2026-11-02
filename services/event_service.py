@@ -43,7 +43,7 @@ def get_event(event_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def create_event(name: str, description: str = "", date: str = "", created_by: str = "Admin") -> Dict[str, Any]:
+def create_event(name: str, description: str = "", date: str = "", created_by: str = "Admin", access_password: str = "churras2025") -> Dict[str, Any]:
     event_id = slugify(name)
     event_dir = get_event_dir(event_id)
     
@@ -65,6 +65,7 @@ def create_event(name: str, description: str = "", date: str = "", created_by: s
         "created_at": now_iso,
         "updated_at": now_iso,
         "created_by": created_by,
+        "access_password": (access_password or "churras2025").strip(),
         "default_fee_aluno": 25.0,
         "default_fee_servidor": 25.0,
         "default_fee_geral": 25.0
@@ -95,6 +96,7 @@ def clone_event(
     copy_suppliers: bool = True,
     copy_collaborators: bool = True,
     copy_tasks_as_pending: bool = False,
+    access_password: str = "churras2025",
     created_by: str = "Admin"
 ) -> Dict[str, Any]:
     """
@@ -110,7 +112,8 @@ def clone_event(
         name=new_name,
         description=f"Clonado a partir do evento '{source_event_id}'",
         date=new_date or datetime.now().strftime("%Y-%m-%d"),
-        created_by=created_by
+        created_by=created_by,
+        access_password=access_password
     )
     dest_dir = get_event_dir(new_event["id"])
 
@@ -166,4 +169,35 @@ def save_event_data(event_id: str, entity_name: str, data: Any, user_name: str =
     write_json(file_path, data)
     if action_desc:
         append_audit_log(event_id, user_name, f"ATUALIZAR_{entity_name.upper()}", action_desc)
+
+
+def update_event_password(event_id: str, new_password: str, user_name: str = "Master") -> bool:
+    """Atualiza a senha geral de acesso ao evento (permitido para usuário Master)."""
+    meta_file = get_event_dir(event_id) / "meta.json"
+    if not meta_file.exists():
+        return False
+    meta = read_json(meta_file, {})
+    meta["access_password"] = new_password.strip()
+    meta["updated_at"] = datetime.now().isoformat()
+    write_json(meta_file, meta)
+    append_audit_log(
+        event_id,
+        user_name,
+        "ALTERAR_SENHA_EVENTO",
+        f"A senha geral de acesso do evento foi alterada com sucesso."
+    )
+    return True
+
+
+def verify_event_password(event_id: str, input_password: str) -> bool:
+    """Verifica se a senha fornecida corresponde à senha geral do evento."""
+    meta = get_event(event_id)
+    if not meta:
+        return False
+    expected_pwd = meta.get("access_password", "churras2025")
+    # Se por algum motivo o evento não tiver senha cadastrada, padrão é 'churras2025'
+    if not expected_pwd:
+        expected_pwd = "churras2025"
+    return input_password.strip() == expected_pwd.strip()
+
 

@@ -6,11 +6,12 @@ Sistema completo desenvolvido em Python com [Streamlit](https://streamlit.io/) p
 
 ## 🌟 Principais Recursos
 
-### 1. Gestão de Múltiplos Eventos com Isolamento Total
+### 1. Gestão de Múltiplos Eventos com Isolamento Total e Senha Geral
 - Criação de eventos com nomes identificadores (ex: `"3º ELE 2025"`, `"Natal 2024"`, `"Formatura 2026"`).
+- **🔒 Senha Geral de Acesso por Evento:** Cada evento possui sua própria senha de acesso para que os dados só possam ser visualizados por quem possuir a senha. O usuário Master pode visualizar e editar essa senha a qualquer momento.
 - **Isolamento de Base de Dados por Pastas:** Cada evento possui sua própria pasta em `data/events/{event_id}/`, armazenando seus próprios arquivos JSON e imagens de cupons e fornecedores.
 - **Clonagem e Aproveitamento de Cadastros:** É possível clonar consumíveis, receitas, fornecedores e modelos de tarefas de qualquer evento anterior para um novo evento, sem manter vínculos ou dependências ativas.
-- **Carga Inicial Automática:** O evento demonstrativo `"Churrasco 3º ELE 2025"` é importado automaticamente a partir da planilha fornecida `Gastos com churrasco - 3º ELE 2025.xlsx`.
+- **Carga Inicial Automática:** O evento demonstrativo `"Churrasco 3º ELE 2025"` é importado automaticamente a partir da planilha fornecida `Gastos com churrasco - 3º ELE 2025.xlsx` (senha padrão inicial: `churras2025`).
 
 ### 2. Perfis de Acesso e Auditoria
 - **👑 Organizador Master:** Controle total do sistema, aprovação de sugestões, gestão de usuários e eventos (mínimo de 1 administrador garantido por regra de segurança).

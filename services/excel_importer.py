@@ -12,7 +12,11 @@ def bootstrap_demo_event_if_needed() -> str:
     Se não existir, importa automaticamente a partir do arquivo Excel fornecido.
     """
     event_id = "churrasco_3_ele_2025"
-    if get_event(event_id):
+    existing = get_event(event_id)
+    if existing:
+        if not existing.get("access_password"):
+            from services.event_service import update_event_password
+            update_event_password(event_id, "churras2025", "Sistema")
         return event_id
 
     # Cria o evento base
@@ -20,7 +24,8 @@ def bootstrap_demo_event_if_needed() -> str:
         name="Churrasco 3º ELE 2025",
         description="Evento demonstrativo importado da planilha histórica 'Gastos com churrasco - 3º ELE 2025.xlsx'",
         date="2025-12-18",
-        created_by="Administrador Master"
+        created_by="Administrador Master",
+        access_password="churras2025"
     )
     event_id = meta["id"]
 

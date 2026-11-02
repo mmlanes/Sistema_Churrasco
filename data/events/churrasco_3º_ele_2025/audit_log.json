@@ -52,5 +52,23 @@
     "user": "Sistema",
     "action": "ATUALIZAR_SUGGESTIONS",
     "details": "Carga inicial de sugestões"
+  },
+  {
+    "timestamp": "2026-11-02 12:09:16",
+    "user": "Sistema",
+    "action": "ALTERAR_SENHA_EVENTO",
+    "details": "A senha geral de acesso do evento foi alterada com sucesso."
+  },
+  {
+    "timestamp": "2026-11-02 12:09:33",
+    "user": "admin",
+    "action": "ALTERAR_SENHA_EVENTO",
+    "details": "A senha geral de acesso do evento foi alterada com sucesso."
+  },
+  {
+    "timestamp": "2026-11-02 12:09:33",
+    "user": "admin",
+    "action": "ALTERAR_SENHA_EVENTO",
+    "details": "A senha geral de acesso do evento foi alterada com sucesso."
   }
 ]

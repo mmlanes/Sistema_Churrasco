@@ -1,10 +1,10 @@
 import streamlit as st
-from services.event_service import list_events, create_event, clone_event, get_event
+from services.event_service import list_events, create_event, clone_event, get_event, update_event_password
 from ui.auth_view import can_edit, is_master
 
 
 def render_event_selector() -> str:
-    """Renderiza a seleção do evento ativo no topo ou sidebar, com opções de criação e clonagem."""
+    """Renderiza a seleção do evento ativo no topo ou sidebar, com opções de criação, clonagem e gestão de senha."""
     events = list_events()
     if not events:
         st.warning("Nenhum evento encontrado.")
@@ -20,7 +20,11 @@ def render_event_selector() -> str:
 
     selected_index = event_ids.index(current_id)
 
-    col1, col2, col3 = st.columns([4, 1.2, 1.2])
+    # Colunas: Seletor, Novo, Clonar, Senha (se Master)
+    if is_master():
+        col1, col2, col3, col4 = st.columns([3.2, 1.1, 1.1, 1.4])
+    else:
+        col1, col2, col3 = st.columns([4, 1.2, 1.2])
 
     with col1:
         chosen_id = st.selectbox(
@@ -41,6 +45,7 @@ def render_event_selector() -> str:
                 st.caption("Cria uma base de dados em pasta própria e isolada.")
                 new_name = st.text_input("Nome do Evento (ex: Natal 2024, Formatura 2026)", key="new_ev_name")
                 new_date = st.date_input("Data do Churrasco", key="new_ev_date")
+                new_pwd = st.text_input("Senha Geral de Acesso ao Evento *", value="churras2025", key="new_ev_pwd", help="Senha exigida para qualquer pessoa visualizar este evento")
                 new_desc = st.text_area("Descrição / Local", key="new_ev_desc")
 
                 if st.button("Salvar Evento", type="primary", use_container_width=True):
@@ -50,9 +55,13 @@ def render_event_selector() -> str:
                             name=new_name.strip(),
                             description=new_desc,
                             date=str(new_date),
-                            created_by=user_name
+                            created_by=user_name,
+                            access_password=new_pwd.strip() or "churras2025"
                         )
                         st.session_state["active_event_id"] = ev["id"]
+                        # Auto-libera para a sessão atual
+                        unlocked = st.session_state.setdefault("unlocked_events", set())
+                        unlocked.add(ev["id"])
                         st.success(f"Evento '{new_name}' criado com sucesso!")
                         st.rerun()
                     else:
@@ -72,6 +81,7 @@ def render_event_selector() -> str:
                 )
                 clone_name = st.text_input("Nome do Novo Evento", placeholder="Ex: Churrasco 4º ELE 2026", key="clone_new_name")
                 clone_date = st.date_input("Nova Data", key="clone_new_date")
+                clone_pwd = st.text_input("Senha Geral de Acesso ao Novo Evento *", value="churras2025", key="clone_new_pwd")
                 
                 st.write("**Selecione o que deseja copiar:**")
                 c_consumables = st.checkbox("Consumíveis (Carnes, Bebidas, Descartáveis etc.)", value=True)
@@ -92,13 +102,36 @@ def render_event_selector() -> str:
                             copy_suppliers=c_suppliers,
                             copy_collaborators=c_collabs,
                             copy_tasks_as_pending=c_tasks,
+                            access_password=clone_pwd.strip() or "churras2025",
                             created_by=user_name
                         )
                         st.session_state["active_event_id"] = ev["id"]
+                        unlocked = st.session_state.setdefault("unlocked_events", set())
+                        unlocked.add(ev["id"])
                         st.success(f"Novo evento '{clone_name}' clonado com sucesso com isolamento total!")
                         st.rerun()
                     else:
                         st.error("Informe o nome para o novo evento.")
+
+    # Se for Master, exibe botão de visualização e edição da senha geral do evento
+    if is_master():
+        with col4:
+            curr_event = get_event(chosen_id) or {}
+            curr_pwd = curr_event.get("access_password", "churras2025")
+            with st.popover("🔐 Senha do Evento"):
+                st.subheader("Senha Geral do Evento")
+                st.caption("Controle exclusivo Master: defina quem pode visualizar este evento.")
+                st.info(f"Senha Atual: **`{curr_pwd}`**")
+
+                new_event_pwd = st.text_input("Definir Nova Senha Geral:", value=curr_pwd, key="master_change_ev_pwd")
+                if st.button("Salvar Nova Senha", type="primary", use_container_width=True):
+                    if new_event_pwd.strip():
+                        user_name = st.session_state.get("user", {}).get("name", "Master")
+                        update_event_password(chosen_id, new_event_pwd.strip(), user_name)
+                        st.success("Senha geral do evento atualizada com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error("A senha não pode ser vazia.")
 
     return st.session_state.get("active_event_id", "")
 
