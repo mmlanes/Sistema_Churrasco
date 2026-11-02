@@ -68,10 +68,12 @@ def login_form():
             st.error("Usuário ou senha inválidos.")
 
     st.markdown("---")
-    st.caption("💡 **Usuários iniciais do sistema:**")
-    st.caption("- **Master:** `admin` (senha `admin123`) ou `matusalem` (senha `matu123`)")
-    st.caption("- **Colaboradores:** `manuela` (senha `manu123`), `marcelle` (senha `marcelle123`), `julia` (senha `julia123`)")
-    st.caption("- **Visualizador:** `convidado` (senha `1234`)")
+    with st.expander("📋 Ver Contas e Senhas Cadastradas"):
+        all_u = get_all_users()
+        for uname, udata in all_u.items():
+            urole = "👑 Master" if udata["role"] == "master" else ("🛠️ Colab" if udata["role"] == "colaborador" else "👀 Leitura")
+            upass = udata.get("plain_password", "admin123" if uname == "admin" else ("1234" if uname == "convidado" else f"{uname}123"))
+            st.markdown(f"- **`{uname}`** | Senha: **`{upass}`** *({urole})*")
 
 
 def can_edit() -> bool:

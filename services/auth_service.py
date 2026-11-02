@@ -18,6 +18,7 @@ def init_default_users() -> None:
                 "name": "Administrador Master",
                 "role": "master",  # master, colaborador, visualizador
                 "password_hash": hash_password("admin123"),
+                "plain_password": "admin123",
                 "email": "admin@churrasco.local",
                 "active": True
             },
@@ -26,6 +27,7 @@ def init_default_users() -> None:
                 "name": "Matusalém",
                 "role": "master",  # Também organizador master
                 "password_hash": hash_password("matu123"),
+                "plain_password": "matu123",
                 "email": "matusalem@churrasco.local",
                 "active": True
             },
@@ -34,6 +36,7 @@ def init_default_users() -> None:
                 "name": "Manuela",
                 "role": "colaborador",
                 "password_hash": hash_password("manu123"),
+                "plain_password": "manu123",
                 "email": "manuela@churrasco.local",
                 "active": True
             },
@@ -42,6 +45,7 @@ def init_default_users() -> None:
                 "name": "Marcelle",
                 "role": "colaborador",
                 "password_hash": hash_password("marcelle123"),
+                "plain_password": "marcelle123",
                 "email": "marcelle@churrasco.local",
                 "active": True
             },
@@ -50,6 +54,7 @@ def init_default_users() -> None:
                 "name": "Júlia Marinho",
                 "role": "colaborador",
                 "password_hash": hash_password("julia123"),
+                "plain_password": "julia123",
                 "email": "julia@churrasco.local",
                 "active": True
             },
@@ -58,6 +63,7 @@ def init_default_users() -> None:
                 "name": "Convidado / Visualizador",
                 "role": "visualizador",
                 "password_hash": hash_password("1234"),
+                "plain_password": "1234",
                 "email": "convidado@churrasco.local",
                 "active": True
             }
@@ -95,6 +101,7 @@ def save_user(username: str, name: str, role: str, password: Optional[str] = Non
         users[username]["email"] = email
         if password:
             users[username]["password_hash"] = hash_password(password)
+            users[username]["plain_password"] = password
     else:
         # Novo usuário
         if not password:
@@ -104,6 +111,7 @@ def save_user(username: str, name: str, role: str, password: Optional[str] = Non
             "name": name,
             "role": role,
             "password_hash": hash_password(password),
+            "plain_password": password,
             "email": email,
             "active": True
         }
