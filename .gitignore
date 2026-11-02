@@ -26,3 +26,6 @@ $RECYCLE.BIN/
 # Logs
 *.log
 
+# Streamlit local secrets
+.streamlit/secrets.toml
+

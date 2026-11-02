@@ -22,6 +22,17 @@ def slugify(text: str) -> str:
 
 
 def list_events() -> List[Dict[str, Any]]:
+    # 1. Tenta carregar eventos diretamente do Supabase
+    try:
+        from services.supabase_service import is_supabase_available, list_events_from_db
+        if is_supabase_available():
+            db_events = list_events_from_db()
+            if db_events:
+                return db_events
+    except Exception:
+        pass
+
+    # 2. Fallback para arquivos locais em disco
     events = []
     if not EVENTS_DIR.exists():
         return events
@@ -231,19 +242,24 @@ def verify_event_password(event_id: str, input_password: str) -> bool:
 
 def delete_event(event_id: str, user_name: str = "Master") -> bool:
     """
-    Exclui permanentemente a pasta e os dados do evento selecionado.
-    Devido ao isolamento total de pastas (data/events/{event_id}),
-    a exclusão afeta estritamente este evento, com zero impacto
-    ou dependência em relação a outros eventos do sistema.
+    Exclui permanentemente o evento selecionado (no Supabase e no disco local).
+    Devido ao isolamento total, a exclusão afeta estritamente este evento.
     """
     events = list_events()
     if len(events) <= 1:
         return False  # Garante que sempre reste ao menos 1 evento
 
+    # Deleta do Supabase
+    try:
+        from services.supabase_service import delete_event_from_db
+        delete_event_from_db(event_id)
+    except Exception:
+        pass
+
+    # Deleta pasta local se existir
     event_dir = get_event_dir(event_id)
     if event_dir.exists() and event_dir.is_dir():
-        shutil.rmtree(event_dir)
-        return True
-    return False
+        shutil.rmtree(event_dir, ignore_errors=True)
+    return True
 
 

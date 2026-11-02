@@ -4,9 +4,11 @@ from datetime import datetime
 from pathlib import Path
 import pandas as pd
 from PIL import Image
+import io
 import streamlit as st
 from services.event_service import get_event_data, save_event_data
 from services.storage_service import get_event_uploads_dir
+from services.supabase_service import save_upload_to_db, get_upload_from_db
 from ui.auth_view import can_edit
 
 
@@ -102,9 +104,18 @@ def render_cashflow(event_id: str):
                         if uploaded_file is not None:
                             ext = Path(uploaded_file.name).suffix
                             filename = f"rec_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}{ext}"
+                            file_bytes = uploaded_file.getvalue()
                             save_path = receipts_dir / filename
-                            with open(save_path, "wb") as f:
-                                f.write(uploaded_file.getbuffer())
+                            try:
+                                with open(save_path, "wb") as f:
+                                    f.write(file_bytes)
+                            except Exception:
+                                pass
+                            # Salva permanentemente no Supabase
+                            try:
+                                save_upload_to_db(event_id, "receipts", filename, file_bytes, uploaded_file.type)
+                            except Exception as e:
+                                print(f"Erro ao salvar upload no Supabase: {e}")
 
                         new_entry = {
                             "id": f"csh_{str(uuid.uuid4())[:8]}",
@@ -147,23 +158,39 @@ def render_cashflow(event_id: str):
                     with st.container():
                         st.markdown(f"**{c.get('description')}**")
                         st.caption(f"Valor: R$ {c.get('amount', 0):.2f} | Data: {c.get('date')}")
+                        # Tenta carregar do disco local; se não existir, recupera do Supabase
+                        file_bytes = None
                         if file_path.exists():
-                            if file_path.suffix.lower() in [".png", ".jpg", ".jpeg"]:
+                            try:
+                                with open(file_path, "rb") as f:
+                                    file_bytes = f.read()
+                            except Exception:
+                                pass
+                        if file_bytes is None:
+                            file_bytes = get_upload_from_db(event_id, "receipts", fname)
+                            if file_bytes:
                                 try:
-                                    img = Image.open(file_path)
+                                    with open(file_path, "wb") as f:
+                                        f.write(file_bytes)
+                                except Exception:
+                                    pass
+
+                        if file_bytes:
+                            if Path(fname).suffix.lower() in [".png", ".jpg", ".jpeg"]:
+                                try:
+                                    img = Image.open(io.BytesIO(file_bytes))
                                     st.image(img, use_container_width=True)
                                 except Exception:
-                                    st.write("Erro ao carregar imagem.")
+                                    st.write("Erro ao processar imagem.")
                             else:
                                 st.write(f"📄 Arquivo: `{fname}`")
 
-                            with open(file_path, "rb") as f:
-                                st.download_button(
-                                    label="⬇️ Baixar Arquivo",
-                                    data=f.read(),
-                                    file_name=fname,
-                                    key=f"dl_{idx}_{fname}"
-                                )
+                            st.download_button(
+                                label="⬇️ Baixar Arquivo",
+                                data=file_bytes,
+                                file_name=fname,
+                                key=f"dl_{idx}_{fname}"
+                            )
                         else:
                             st.write("*(Arquivo físico não localizado)*")
                         st.markdown("---")

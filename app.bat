@@ -22,3 +22,4 @@ if %ERRORLEVEL% NEQ 0 (
     echo Ocorreu um erro ao executar a aplicacao.
     pause
 )
+ 

@@ -3,9 +3,11 @@ from datetime import datetime
 from pathlib import Path
 import pandas as pd
 from PIL import Image
+import io
 import streamlit as st
 from services.event_service import get_event_data, save_event_data
 from services.storage_service import get_event_uploads_dir
+from services.supabase_service import save_upload_to_db, get_upload_from_db
 from ui.auth_view import can_edit
 
 
@@ -119,8 +121,16 @@ def render_suppliers(event_id: str):
                         if sup_photo is not None:
                             ext = Path(sup_photo.name).suffix
                             fname = f"sup_{sup_id}_{int(datetime.now().timestamp())}{ext}"
-                            with open(suppliers_dir / fname, "wb") as f:
-                                f.write(sup_photo.getbuffer())
+                            file_bytes = sup_photo.getvalue()
+                            try:
+                                with open(suppliers_dir / fname, "wb") as f:
+                                    f.write(file_bytes)
+                            except Exception:
+                                pass
+                            try:
+                                save_upload_to_db(event_id, "suppliers", fname, file_bytes, sup_photo.type)
+                            except Exception as e:
+                                print(f"Erro ao salvar foto no Supabase: {e}")
                             photos.append(fname)
 
                         new_s = {
@@ -158,12 +168,30 @@ def render_suppliers(event_id: str):
             pcols = st.columns(3)
             for idx, (s_name, p_name) in enumerate(all_photos):
                 p_path = suppliers_dir / p_name
+                file_bytes = None
                 if p_path.exists():
+                    try:
+                        with open(p_path, "rb") as f:
+                            file_bytes = f.read()
+                    except Exception:
+                        pass
+                if file_bytes is None:
+                    file_bytes = get_upload_from_db(event_id, "suppliers", p_name)
+                    if file_bytes:
+                        try:
+                            with open(p_path, "wb") as f:
+                                f.write(file_bytes)
+                        except Exception:
+                            pass
+
+                if file_bytes:
                     with pcols[idx % 3]:
                         st.markdown(f"**Fornecedor:** `{s_name}`")
-                        img = Image.open(p_path)
-                        st.image(img, use_container_width=True)
-                        with open(p_path, "rb") as f:
-                            st.download_button("⬇️ Baixar Imagem", f.read(), file_name=p_name, key=f"dl_sup_p_{idx}")
+                        try:
+                            img = Image.open(io.BytesIO(file_bytes))
+                            st.image(img, use_container_width=True)
+                        except Exception:
+                            st.write("Erro ao carregar imagem.")
+                        st.download_button("⬇️ Baixar Imagem", file_bytes, file_name=p_name, key=f"dl_sup_p_{idx}")
                         st.markdown("---")
 
