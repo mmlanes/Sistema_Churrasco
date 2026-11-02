@@ -53,11 +53,82 @@ def render_admin(event_id: str):
                 "Senha Atual": u.get("plain_password", "admin123" if u["username"] == "admin" else ("1234" if u["username"] == "convidado" else f"{u['username']}123")),
                 "Eventos Permitidos": eventos_txt,
                 "E-mail": u.get("email", "-"),
-                "Status": "Ativo" if u.get("active", True) else "Inativo"
+                "Status": "Ativo" if u.get("active", True) else "Inativo",
+                "_raw_role": role,
+                "_raw_allowed": allowed
             })
 
-        df_users = pd.DataFrame(user_rows)
-        st.dataframe(df_users, use_container_width=True, hide_index=True)
+        # Filtros de Busca e Visualização da Tabela de Usuários
+        ev_filter_opts = {"all": "📅 Todos os Eventos"}
+        for e in all_events:
+            ev_filter_opts[e["id"]] = f"📅 {e['name']} ({e.get('date', '')})"
+
+        col_f1, col_f2, col_f3 = st.columns([1.6, 1.6, 1.2])
+        with col_f1:
+            filtro_nome = st.text_input(
+                "🔍 Filtrar por Nome ou Login:",
+                placeholder="Digite o nome ou username...",
+                key="filter_admin_user_name"
+            ).strip().lower()
+
+        with col_f2:
+            filtro_evento_id = st.selectbox(
+                "📅 Filtrar por Evento Autorizado:",
+                options=list(ev_filter_opts.keys()),
+                format_func=lambda x: ev_filter_opts[x],
+                key="filter_admin_user_event"
+            )
+
+        with col_f3:
+            filtro_perfil = st.selectbox(
+                "👤 Perfil de Acesso:",
+                options=["Todos", "Master", "Colaborador", "Visualizador"],
+                format_func=lambda x: {
+                    "Todos": "Todos os Perfis",
+                    "Master": "👑 Master",
+                    "Colaborador": "🛠️ Colaborador",
+                    "Visualizador": "👀 Visualizador"
+                }.get(x, x),
+                key="filter_admin_user_role"
+            )
+
+        # Aplicação dos Filtros
+        filtered_rows = []
+        for r in user_rows:
+            # 1. Filtro por nome ou login
+            if filtro_nome:
+                nome_match = filtro_nome in str(r["Nome Completo"]).lower()
+                login_match = filtro_nome in str(r["Usuário (Login)"]).lower()
+                if not (nome_match or login_match):
+                    continue
+
+            # 2. Filtro por evento autorizado
+            if filtro_evento_id != "all":
+                u_role = r.get("_raw_role", "")
+                u_allowed = r.get("_raw_allowed", [])
+                # Master sempre tem acesso a todos os eventos
+                if u_role != "master" and "*" not in u_allowed:
+                    if filtro_evento_id not in u_allowed:
+                        continue
+
+            # 3. Filtro por perfil de acesso
+            if filtro_perfil != "Todos":
+                if r.get("_raw_role", "").lower() != filtro_perfil.lower():
+                    continue
+
+            # Remove campos internos de controle antes de renderizar
+            display_row = {k: v for k, v in r.items() if not k.startswith("_")}
+            filtered_rows.append(display_row)
+
+        if filtered_rows:
+            if len(filtered_rows) != len(user_rows):
+                st.caption(f"Exibindo **{len(filtered_rows)}** de **{len(user_rows)}** usuários cadastrados (filtros ativos).")
+            else:
+                st.caption(f"Total de **{len(user_rows)}** usuários cadastrados.")
+            df_users = pd.DataFrame(filtered_rows)
+            st.dataframe(df_users, use_container_width=True, hide_index=True)
+        else:
+            st.warning("⚠️ Nenhum usuário encontrado com os filtros selecionados.")
 
         st.markdown("---")
 
