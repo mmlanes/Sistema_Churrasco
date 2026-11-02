@@ -307,6 +307,10 @@ def render_consumables(event_id: str):
 
         st.metric("Custo Total Estimado das Receitas", f"R$ {rec_summary['recipes_grand_total']:,.2f}")
 
+        # Mensagem explicativa caso o usuário esteja em modo somente leitura
+        if not can_edit():
+            st.info("ℹ️ **Modo Visualização (Somente Leitura):** Você está acessando em modo de leitura. Para criar, editar ou excluir receitas e ingredientes, faça login na barra superior (botão **🔑 Fazer Login**) como **Organizador Master** ou **Colaborador**.")
+
         # Adicionar Nova Receita
         if can_edit():
             with st.expander("➕ Criar Nova Receita Fabricada"):
@@ -345,10 +349,62 @@ def render_consumables(event_id: str):
         # Listagem e Gestão de cada receita existente
         for r_idx, r in enumerate(calc_recipes):
             with st.container():
-                st.markdown(f"### 🍲 {r.get('name')}")
-                st.write(f"**Chef / Responsável:** `{r.get('assigned_to', 'Não atribuído')}` | **Rendimento Calculado:** `{r.get('total_yield_needed')} {r.get('yield_unit', 'kg')}` | **Custo Total da Receita:** `R$ {r.get('total_cost'):,.2f}`")
-                if r.get("instructions"):
-                    st.caption(f"📝 *Modo de preparo:* {r.get('instructions')}")
+                col_r_title, col_r_actions = st.columns([3, 1.8])
+                with col_r_title:
+                    st.markdown(f"### 🍲 {r.get('name')}")
+                    st.write(f"**Chef / Responsável:** `{r.get('assigned_to', 'Não atribuído')}` | **Rendimento Calculado:** `{r.get('total_yield_needed')} {r.get('yield_unit', 'kg')}` | **Custo Total da Receita:** `R$ {r.get('total_cost'):,.2f}`")
+                    if r.get("instructions"):
+                        st.caption(f"📝 *Modo de preparo:* {r.get('instructions')}")
+
+                if can_edit():
+                    with col_r_actions:
+                        st.write("")
+                        b_col1, b_col2 = st.columns(2)
+                        with b_col1:
+                            with st.popover("✏️ Editar Receita"):
+                                st.subheader(f"Editar '{r.get('name')}'")
+                                with st.form(f"form_edit_recipe_{r['id']}"):
+                                    e_rec_name = st.text_input("Nome da Receita", value=r.get("name", ""))
+                                    collab_opts = [""] + collab_names
+                                    c_idx = collab_opts.index(r.get("assigned_to", "")) if r.get("assigned_to") in collab_opts else 0
+                                    e_rec_collab = st.selectbox("Colaborador Responsável", collab_opts, index=c_idx)
+                                    
+                                    er1, er2 = st.columns(2)
+                                    e_rec_yield = er1.number_input("Rendimento Padrão", value=float(r.get("standard_yield", 3.0)), step=0.5)
+                                    unit_opts = ["kg", "L", "porções", "un"]
+                                    u_idx = unit_opts.index(r.get("yield_unit", "kg")) if r.get("yield_unit") in unit_opts else 0
+                                    e_rec_unit = er2.selectbox("Unidade do Rendimento", unit_opts, index=u_idx)
+                                    
+                                    e_rec_portion = st.number_input("Porção estimada por pessoa", value=float(r.get("portion_per_person", 0.085)), step=0.01, format="%.3f")
+                                    e_rec_inst = st.text_area("Instruções / Modo de Preparo", value=r.get("instructions", ""))
+                                    
+                                    if st.form_submit_button("💾 Salvar Receita", type="primary", use_container_width=True):
+                                        if e_rec_name.strip():
+                                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                            orig_r = next((item for item in recipes if item["id"] == r["id"]), None)
+                                            if orig_r:
+                                                orig_r["name"] = e_rec_name.strip()
+                                                orig_r["assigned_to"] = e_rec_collab or "Colaborador"
+                                                orig_r["standard_yield"] = float(e_rec_yield)
+                                                orig_r["yield_unit"] = e_rec_unit
+                                                orig_r["portion_per_person"] = float(e_rec_portion)
+                                                orig_r["instructions"] = e_rec_inst
+                                                save_event_data(event_id, "recipes", recipes, user_name, f"Editou receita '{e_rec_name.strip()}'")
+                                                st.success(f"Receita '{e_rec_name.strip()}' atualizada!")
+                                                st.rerun()
+                                        else:
+                                            st.error("O nome da receita não pode ficar vazio.")
+
+                        with b_col2:
+                            with st.popover("🗑️ Excluir"):
+                                st.subheader("Excluir Receita")
+                                st.warning(f"Excluir '{r.get('name')}' e todos os ingredientes?")
+                                if st.button("Confirmar Exclusão", key=f"btn_confirm_del_rec_{r['id']}", type="primary", use_container_width=True):
+                                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                    recipes = [item for item in recipes if item["id"] != r["id"]]
+                                    save_event_data(event_id, "recipes", recipes, user_name, f"Excluiu receita '{r.get('name')}'")
+                                    st.warning(f"Receita '{r.get('name')}' excluída.")
+                                    st.rerun()
 
                 ings = r.get("ingredients", [])
                 if ings:
@@ -367,36 +423,97 @@ def render_consumables(event_id: str):
                 else:
                     st.warning("Esta receita ainda não possui ingredientes cadastrados.")
 
-                # Adicionar ingrediente a esta receita
+                # Ações de ingredientes (Adicionar ou Editar/Remover)
                 if can_edit():
-                    with st.expander(f"➕ Adicionar Ingrediente em '{r.get('name')}'"):
-                        with st.form(f"form_add_ing_{r['id']}", clear_on_submit=True):
-                            i1, i2, i3 = st.columns([2, 1, 1])
-                            ing_name = i1.text_input("Nome do Ingrediente (ex: Bacon, Tomate, Ovos)")
-                            ing_qty = i2.number_input("Qtd para o rendimento padrão", value=1.0, step=0.1)
-                            ing_unit = i3.selectbox("Unidade", ["kg", "g", "L", "ml", "un", "maço", "pct"])
+                    col_ing_add, col_ing_edit = st.columns(2)
+                    with col_ing_add:
+                        with st.expander(f"➕ Adicionar Ingrediente em '{r.get('name')}'"):
+                            with st.form(f"form_add_ing_{r['id']}", clear_on_submit=True):
+                                i1, i2, i3 = st.columns([2, 1, 1])
+                                ing_name = i1.text_input("Nome do Ingrediente (ex: Bacon, Tomate, Ovos)")
+                                ing_qty = i2.number_input("Qtd para o rendimento padrão", value=1.0, step=0.1)
+                                ing_unit = i3.selectbox("Unidade", ["kg", "g", "L", "ml", "un", "maço", "pct"])
 
-                            i4, i5, i6 = st.columns(3)
-                            ing_price = i4.number_input("Preço Unitário (R$)", value=10.0, step=1.0)
-                            ing_pack = i5.number_input("Embalagem Comercial (0 se granel)", value=1.0, step=0.1)
-                            ing_sup = i6.selectbox("Fornecedor", [""] + list(suppliers_dict.keys()), format_func=lambda x: suppliers_dict.get(x, "Nenhum"), key=f"sup_ing_{r['id']}")
+                                i4, i5, i6 = st.columns(3)
+                                ing_price = i4.number_input("Preço Unitário (R$)", value=10.0, step=1.0)
+                                ing_pack = i5.number_input("Embalagem Comercial (0 se granel)", value=1.0, step=0.1)
+                                ing_sup = i6.selectbox("Fornecedor", [""] + list(suppliers_dict.keys()), format_func=lambda x: suppliers_dict.get(x, "Nenhum"), key=f"sup_ing_{r['id']}")
 
-                            if st.form_submit_button("Incluir Ingrediente"):
-                                if ing_name.strip():
-                                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                                    # Procura a receita original na lista
-                                    orig_r = next(item for item in recipes if item["id"] == r["id"])
-                                    orig_r.setdefault("ingredients", []).append({
-                                        "name": ing_name.strip(),
-                                        "quantity": float(ing_qty),
-                                        "unit": ing_unit,
-                                        "unit_price": float(ing_price),
-                                        "package_size": float(ing_pack),
-                                        "supplier_id": ing_sup
-                                    })
-                                    save_event_data(event_id, "recipes", recipes, user_name, f"Adicionou ingrediente '{ing_name}' à receita '{r.get('name')}'")
-                                    st.success(f"Ingrediente '{ing_name}' adicionado!")
-                                    st.rerun()
+                                if st.form_submit_button("Incluir Ingrediente", type="primary", use_container_width=True):
+                                    if ing_name.strip():
+                                        user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                        orig_r = next(item for item in recipes if item["id"] == r["id"])
+                                        orig_r.setdefault("ingredients", []).append({
+                                            "name": ing_name.strip(),
+                                            "quantity": float(ing_qty),
+                                            "unit": ing_unit,
+                                            "unit_price": float(ing_price),
+                                            "package_size": float(ing_pack),
+                                            "supplier_id": ing_sup
+                                        })
+                                        save_event_data(event_id, "recipes", recipes, user_name, f"Adicionou ingrediente '{ing_name}' à receita '{r.get('name')}'")
+                                        st.success(f"Ingrediente '{ing_name}' adicionado!")
+                                        st.rerun()
+
+                    with col_ing_edit:
+                        if ings:
+                            with st.expander(f"✏️ Editar ou Remover Ingrediente"):
+                                ing_options = {idx: f"{ing.get('name')} (Qtd: {ing.get('quantity')} {ing.get('unit')} | R$ {float(ing.get('unit_price', 0)):.2f})" for idx, ing in enumerate(ings)}
+                                sel_idx = st.selectbox(
+                                    "Escolha o ingrediente:",
+                                    options=list(ing_options.keys()),
+                                    format_func=lambda x: ing_options[x],
+                                    key=f"select_ing_edit_{r['id']}"
+                                )
+                                curr_ing = ings[sel_idx]
+                                with st.form(f"form_edit_ing_{r['id']}_{sel_idx}"):
+                                    ei1, ei2, ei3 = st.columns([2, 1, 1])
+                                    e_ing_name = ei1.text_input("Nome", value=curr_ing.get("name", ""))
+                                    e_ing_qty = ei2.number_input("Qtd Base", value=float(curr_ing.get("quantity", 1.0)), step=0.1)
+                                    unit_opts_ing = ["kg", "g", "L", "ml", "un", "maço", "pct"]
+                                    u_ing_idx = unit_opts_ing.index(curr_ing.get("unit", "kg")) if curr_ing.get("unit") in unit_opts_ing else 0
+                                    e_ing_unit = ei3.selectbox("Unidade", unit_opts_ing, index=u_ing_idx)
+
+                                    ei4, ei5, ei6 = st.columns(3)
+                                    e_ing_price = ei4.number_input("Preço Unit. (R$)", value=float(curr_ing.get("unit_price", 0.0)), step=0.5, format="%.2f")
+                                    e_ing_pack = ei5.number_input("Embalagem Comercial", value=float(curr_ing.get("package_size", 1.0)), step=0.1)
+                                    cur_sup = curr_ing.get("supplier_id") or ""
+                                    sup_keys = [""] + list(suppliers_dict.keys())
+                                    s_idx = sup_keys.index(cur_sup) if cur_sup in sup_keys else 0
+                                    e_ing_sup = ei6.selectbox("Fornecedor", options=sup_keys, format_func=lambda x: suppliers_dict.get(x, "Nenhum"), index=s_idx)
+
+                                    b_save_col, b_del_col = st.columns(2)
+                                    with b_save_col:
+                                        submit_save_ing = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+                                    with b_del_col:
+                                        submit_del_ing = st.form_submit_button("🗑️ Remover Ingrediente", use_container_width=True)
+
+                                    if submit_save_ing:
+                                        if e_ing_name.strip():
+                                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                            orig_r = next(item for item in recipes if item["id"] == r["id"])
+                                            if "ingredients" in orig_r and sel_idx < len(orig_r["ingredients"]):
+                                                orig_r["ingredients"][sel_idx] = {
+                                                    "name": e_ing_name.strip(),
+                                                    "quantity": float(e_ing_qty),
+                                                    "unit": e_ing_unit,
+                                                    "unit_price": float(e_ing_price),
+                                                    "package_size": float(e_ing_pack),
+                                                    "supplier_id": e_ing_sup
+                                                }
+                                                save_event_data(event_id, "recipes", recipes, user_name, f"Atualizou ingrediente '{e_ing_name}' na receita '{r.get('name')}'")
+                                                st.success(f"Ingrediente '{e_ing_name}' atualizado!")
+                                                st.rerun()
+
+                                    if submit_del_ing:
+                                        user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                        orig_r = next(item for item in recipes if item["id"] == r["id"])
+                                        if "ingredients" in orig_r and sel_idx < len(orig_r["ingredients"]):
+                                            removed_name = orig_r["ingredients"][sel_idx].get("name", "Ingrediente")
+                                            orig_r["ingredients"].pop(sel_idx)
+                                            save_event_data(event_id, "recipes", recipes, user_name, f"Removeu ingrediente '{removed_name}' da receita '{r.get('name')}'")
+                                            st.warning(f"Ingrediente '{removed_name}' removido!")
+                                            st.rerun()
 
                 st.markdown("---")
 
