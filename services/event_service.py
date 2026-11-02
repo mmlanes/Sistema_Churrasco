@@ -190,14 +190,12 @@ def update_event_password(event_id: str, new_password: str, user_name: str = "Ma
 
 
 def verify_event_password(event_id: str, input_password: str) -> bool:
-    """Verifica se a senha fornecida corresponde à senha geral do evento."""
+    """Verifica se a senha fornecida corresponde exatamente à senha geral do evento."""
     meta = get_event(event_id)
     if not meta:
         return False
     expected_pwd = meta.get("access_password", "churras2025") or "churras2025"
-    inp = input_password.strip()
-    # Aceita a senha exata do evento ou 1234 (senha comum de convidado) para facilitar o acesso
-    return (inp == expected_pwd.strip()) or (expected_pwd == "churras2025" and inp == "1234")
+    return input_password.strip() == expected_pwd.strip()
 
 
 def delete_event(event_id: str, user_name: str = "Master") -> bool:

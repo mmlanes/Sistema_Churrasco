@@ -58,11 +58,8 @@ def main():
                 """,
                 unsafe_allow_html=True
             )
-            st.write("")
-            st.info(f"💡 **Senha deste evento:** `{event_meta.get('access_password', 'churras2025')}` ou `1234`")
-
             with st.form("form_event_lock"):
-                entered_pwd = st.text_input("Senha Geral do Evento:", type="password", key=f"input_lock_{active_event_id}", placeholder="Digite a senha geral do evento (ex: churras2025 ou 1234)")
+                entered_pwd = st.text_input("Senha Geral do Evento:", type="password", key=f"input_lock_{active_event_id}", placeholder="Digite a senha geral do evento")
                 submit_unlock = st.form_submit_button("🔓 Desbloquear e Acessar Evento", type="primary", use_container_width=True)
                 if submit_unlock:
                     if verify_event_password(active_event_id, entered_pwd):
@@ -71,7 +68,7 @@ def main():
                         st.rerun()
                     else:
                         st.error("Senha incorreta. Solicite a senha aos organizadores do evento.")
-            st.caption("💡 Se você for o Administrador Master, faça login na barra superior (botão '🔑 Fazer Login') para acessar diretamente e alterar esta senha.")
+            st.caption("💡 Se você for o Administrador Master, faça login na barra superior para acessar diretamente.")
         return
 
     # Menu de Navegação na Sidebar

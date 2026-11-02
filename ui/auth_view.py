@@ -67,14 +67,6 @@ def login_form():
         else:
             st.error("Usuário ou senha inválidos.")
 
-    st.markdown("---")
-    with st.expander("📋 Ver Contas e Senhas Cadastradas"):
-        all_u = get_all_users()
-        for uname, udata in all_u.items():
-            urole = "👑 Master" if udata["role"] == "master" else ("🛠️ Colab" if udata["role"] == "colaborador" else "👀 Leitura")
-            upass = udata.get("plain_password", "admin123" if uname == "admin" else ("1234" if uname == "convidado" else f"{uname}123"))
-            st.markdown(f"- **`{uname}`** | Senha: **`{upass}`** *({urole})*")
-
 
 def can_edit() -> bool:
     """Verifica se o usuário atual tem permissão de escrita (master ou colaborador)."""
