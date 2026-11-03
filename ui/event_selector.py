@@ -87,13 +87,13 @@ def render_event_selector() -> str:
 
     selected_index = event_ids.index(st.session_state["event_selector_box"])
 
-    # Colunas: Seletor, Botão de Padrão, Novo, Clonar, Senha e Exclusão (se Master)
+    # Colunas: Seletor, Botão de Padrão (exclusivo Master), Novo, Clonar, Senha e Exclusão (se Master)
     if is_master():
         col1, col_star, col2, col3, col4, col5 = st.columns([2.6, 1.2, 1.0, 1.0, 1.1, 0.8])
     elif can_edit():
-        col1, col_star, col2, col3 = st.columns([3.2, 1.3, 1.1, 1.1])
+        col1, col2, col3 = st.columns([3.5, 1.2, 1.2])
     else:
-        col1, col_star = st.columns([3.5, 1.3])
+        col1 = st.container()
 
     with col1:
         chosen_id = st.selectbox(
@@ -115,27 +115,29 @@ def render_event_selector() -> str:
         else:
             record_event_access(current_user, chosen_id)
 
-    with col_star:
-        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-        is_default = (chosen_id == default_id)
-        if is_default:
-            st.button(
-                "⭐ Evento Padrão",
-                key="btn_is_default_disabled",
-                disabled=True,
-                use_container_width=True,
-                help="Este já é o evento padrão configurado para abrir automaticamente ao acessar o site."
-            )
-        else:
-            if st.button(
-                "⭐ Definir Padrão",
-                key="btn_set_default_active",
-                use_container_width=True,
-                help="Define este evento como o padrão que abrirá automaticamente para todos ao acessar https://mml-churrasco.streamlit.app"
-            ):
-                set_default_event_id(chosen_id)
-                st.toast(f"⭐ Evento definido como padrão com sucesso!", icon="⭐")
-                st.rerun()
+    # Apenas o Administrador Master tem permissão para alterar o evento padrão global do sistema
+    if is_master():
+        with col_star:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            is_default = (chosen_id == default_id)
+            if is_default:
+                st.button(
+                    "⭐ Padrão Atual",
+                    key="btn_is_default_disabled",
+                    disabled=True,
+                    use_container_width=True,
+                    help="Este já é o evento padrão oficial configurado para abrir automaticamente ao acessar o site."
+                )
+            else:
+                if st.button(
+                    "⭐ Definir Padrão",
+                    key="btn_set_default_active",
+                    use_container_width=True,
+                    help=f"Exclusivo Master: Define este evento como o padrão oficial que abrirá automaticamente para todos ao acessar https://mml-churrasco.streamlit.app"
+                ):
+                    set_default_event_id(chosen_id)
+                    st.toast(f"⭐ '{chosen_id}' agora é o evento padrão do sistema!", icon="⭐")
+                    st.rerun()
 
     if can_edit():
         with col2:

@@ -28,6 +28,33 @@ def render_admin(event_id: str):
     # ABA 1: GESTÃO DE USUÁRIOS
     # ========================================================
     with tab1:
+        # Configuração do Evento Padrão Global do Sistema
+        with st.expander("⭐ Definir Evento Padrão Global do Sistema", expanded=False):
+            st.caption("Configura qual evento abrirá automaticamente para qualquer visitante ou usuário que acessar a URL principal do sistema (https://mml-churrasco.streamlit.app).")
+            from services.storage_service import get_default_event_id, set_default_event_id
+            current_def_id = get_default_event_id() or "churrasco_3_ele_2026"
+
+            c_def1, c_def2 = st.columns([3, 1.2])
+            with c_def1:
+                sel_new_def = st.selectbox(
+                    "Selecione o Evento Padrão Oficial:",
+                    options=[e["id"] for e in all_events],
+                    format_func=lambda x: f"📅 {ev_dict.get(x, x)} {'(Padrão Atual)' if x == current_def_id else ''}",
+                    index=[e["id"] for e in all_events].index(current_def_id) if current_def_id in [e["id"] for e in all_events] else 0,
+                    key="admin_sel_default_event"
+                )
+            with c_def2:
+                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                if sel_new_def == current_def_id:
+                    st.button("⭐ Já é o Padrão", disabled=True, use_container_width=True)
+                else:
+                    if st.button("Salvar como Padrão", type="primary", use_container_width=True):
+                        set_default_event_id(sel_new_def)
+                        st.success(f"Evento '{ev_dict.get(sel_new_def, sel_new_def)}' definido como o novo padrão do sistema!")
+                        st.rerun()
+
+        st.markdown("---")
+
         st.subheader("Usuários Cadastrados e Eventos Autorizados")
         st.caption("Visualize logins, senhas e a lista de eventos permitidos para cada conta.")
         users = get_all_users()
