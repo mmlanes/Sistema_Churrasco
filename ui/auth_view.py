@@ -3,8 +3,20 @@ from services.auth_service import authenticate, get_all_users
 
 
 def init_session_state():
-    if "user" not in st.session_state:
-        # Padrão: visitante público (modo leitura)
+    # Invalida sessões antigas que ficaram presas no evento 2025 ou usuário restrito
+    if st.session_state.get("_session_version") != "2026_v4":
+        st.session_state["_session_version"] = "2026_v4"
+        st.session_state["user"] = {
+            "username": "visitante",
+            "name": "Visitante (Modo Leitura)",
+            "role": "visitante",
+            "allowed_events": ["*"]
+        }
+        st.session_state.pop("active_event_id", None)
+        st.session_state.pop("event_selector_box", None)
+        st.session_state.pop("_user_manually_switched_event", None)
+
+    if "user" not in st.session_state or st.session_state.get("user", {}).get("username") in ("convidado", "visitante"):
         st.session_state["user"] = {
             "username": "visitante",
             "name": "Visitante (Modo Leitura)",
@@ -53,6 +65,7 @@ def render_user_header():
                 }
                 st.session_state["active_event_id"] = None
                 st.session_state.pop("event_selector_box", None)
+                st.session_state.pop("_user_manually_switched_event", None)
                 try:
                     st.query_params.clear()
                 except Exception:
@@ -71,20 +84,24 @@ def login_form():
         if u:
             st.session_state["user"] = u
             
-            # Restaura imediatamente o último evento acessado por este usuário
+            # Restaura preferencialmente o evento padrão ou o último evento do usuário
             from services.event_service import list_events_for_user
+            from services.storage_service import get_default_event_id
             user_events = list_events_for_user(u)
             user_event_ids = [e["id"] for e in user_events]
-            
+            default_id = get_default_event_id() or "churrasco_3_ele_2026"
+
             target_event = None
-            if u.get("last_event_id") and u["last_event_id"] in user_event_ids:
+            if default_id in user_event_ids:
+                target_event = default_id
+            elif u.get("last_event_id") and u["last_event_id"] in user_event_ids:
                 target_event = u["last_event_id"]
             elif user_event_ids:
                 target_event = user_event_ids[0]
-            
+
             if target_event:
                 st.session_state["active_event_id"] = target_event
-                st.session_state["event_selector_box"] = target_event
+                st.session_state.pop("_user_manually_switched_event", None)
                 try:
                     st.query_params["event"] = target_event
                 except Exception:

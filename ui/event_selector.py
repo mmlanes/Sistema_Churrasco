@@ -51,28 +51,17 @@ def render_event_selector() -> str:
         sfx = " [PADRÃO]" if is_def else ""
         event_names[e["id"]] = f"{pfx}{e['name']} ({e.get('date', '')}){sfx}"
 
-    # 1. Prioridade absoluta para query parameter da URL (ex: ?event=churrasco_3_ele_2026)
-    qp_event = None
-    try:
-        qp_event = st.query_params.get("event")
-    except Exception:
-        pass
-
-    current_id = st.session_state.get("active_event_id")
-
-    # Se a URL forneceu um evento válido e este difere do evento ativo atual na sessão, segue o link da URL!
-    if qp_event and qp_event in event_ids and qp_event != current_id:
-        current_id = qp_event
+    # 1. Determinação do evento ativo:
+    # Ao acessar o app ou atualizar a página, o evento padrão global SEMPRE tem prioridade,
+    # a menos que o usuário tenha explicitamente trocado de evento no combo durante esta sessão.
+    if not st.session_state.get("_user_manually_switched_event"):
+        current_id = default_id
         st.session_state["active_event_id"] = current_id
-        st.session_state["event_selector_box"] = current_id
-
-    # Se ainda não houver evento ativo válido na sessão
-    if not current_id or current_id not in event_ids:
-        current_id = get_initial_event_id(current_user)
-        if not current_id or current_id not in event_ids:
-            current_id = default_id if default_id in event_ids else event_ids[0]
-        st.session_state["active_event_id"] = current_id
-        st.session_state["event_selector_box"] = current_id
+    else:
+        current_id = st.session_state.get("active_event_id") or default_id
+        if current_id not in event_ids:
+            current_id = default_id
+            st.session_state["active_event_id"] = current_id
 
     # Sincroniza query parameter no navegador com o evento ativo
     try:
@@ -81,11 +70,7 @@ def render_event_selector() -> str:
     except Exception:
         pass
 
-    # Sincroniza o valor do selectbox com active_event_id
-    if "event_selector_box" not in st.session_state or st.session_state["event_selector_box"] not in event_ids:
-        st.session_state["event_selector_box"] = current_id
-
-    selected_index = event_ids.index(st.session_state["event_selector_box"])
+    selected_index = event_ids.index(current_id) if current_id in event_ids else 0
 
     # Colunas: Seletor, Botão de Padrão (exclusivo Master), Novo, Clonar, Senha e Exclusão (se Master)
     if is_master():
@@ -101,11 +86,11 @@ def render_event_selector() -> str:
             options=event_ids,
             format_func=lambda x: event_names.get(x, x),
             index=selected_index,
-            key="event_selector_box"
+            key=f"event_sel_{current_id}"
         )
         if chosen_id != current_id:
+            st.session_state["_user_manually_switched_event"] = True
             st.session_state["active_event_id"] = chosen_id
-            st.session_state["event_selector_box"] = chosen_id
             try:
                 st.query_params["event"] = chosen_id
             except Exception:
