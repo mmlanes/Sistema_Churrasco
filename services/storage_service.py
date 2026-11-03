@@ -161,3 +161,26 @@ def set_system_last_event(event_id: str) -> None:
         data["last_accessed_event_id"] = event_id
         data["updated_at"] = datetime.now().isoformat()
         write_json(GLOBAL_SETTINGS_FILE, data)
+
+
+def get_default_event_id() -> Optional[str]:
+    """Retorna o ID do evento padrão configurado para o sistema."""
+    from config import GLOBAL_SETTINGS_FILE
+    data = read_json(GLOBAL_SETTINGS_FILE, default={})
+    if isinstance(data, dict):
+        return data.get("default_event_id")
+    return None
+
+
+def set_default_event_id(event_id: str) -> None:
+    """Configura o evento padrão global do sistema e persiste no settings.json e Supabase."""
+    if not event_id:
+        return
+    from config import GLOBAL_SETTINGS_FILE
+    data = read_json(GLOBAL_SETTINGS_FILE, default={})
+    if not isinstance(data, dict):
+        data = {}
+    data["default_event_id"] = event_id
+    data["last_accessed_event_id"] = event_id
+    data["updated_at"] = datetime.now().isoformat()
+    write_json(GLOBAL_SETTINGS_FILE, data)

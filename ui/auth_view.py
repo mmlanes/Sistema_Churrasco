@@ -4,12 +4,12 @@ from services.auth_service import authenticate, get_all_users
 
 def init_session_state():
     if "user" not in st.session_state:
-        # Padrão: convidado / visualizador associado ao evento padrão
+        # Padrão: visitante público (modo leitura)
         st.session_state["user"] = {
-            "username": "convidado",
-            "name": "Convidado (Modo Leitura)",
-            "role": "visualizador",
-            "allowed_events": ["churrasco_3_ele_2025"]
+            "username": "visitante",
+            "name": "Visitante (Modo Leitura)",
+            "role": "visitante",
+            "allowed_events": ["*"]
         }
     if "active_event_id" not in st.session_state:
         st.session_state["active_event_id"] = None
@@ -40,16 +40,16 @@ def render_user_header():
         )
 
     with col2:
-        if role == "visualizador":
+        if role in ("visualizador", "visitante"):
             with st.popover("🔑 Fazer Login"):
                 login_form()
         else:
             if st.button("🚪 Sair / Trocar Usuário", use_container_width=True):
                 st.session_state["user"] = {
-                    "username": "convidado",
-                    "name": "Convidado (Modo Leitura)",
-                    "role": "visualizador",
-                    "allowed_events": ["churrasco_3_ele_2025"]
+                    "username": "visitante",
+                    "name": "Visitante (Modo Leitura)",
+                    "role": "visitante",
+                    "allowed_events": ["*"]
                 }
                 st.session_state["active_event_id"] = None
                 st.session_state.pop("event_selector_box", None)

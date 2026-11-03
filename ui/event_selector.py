@@ -29,7 +29,7 @@ def record_event_access(user: dict, event_id: str) -> None:
 
 
 def render_event_selector() -> str:
-    """Renderiza a seleção do evento ativo no topo, respeitando rigorosamente as permissões de eventos concedidas pelo Master."""
+    """Renderiza a seleção do evento ativo no topo com combo de eventos e opção de definir o evento padrão."""
     current_user = st.session_state.get("user", {})
     events = list_events_for_user(current_user)
 
@@ -38,40 +38,48 @@ def render_event_selector() -> str:
         return ""
 
     event_ids = [e["id"] for e in events]
-    event_names = {e["id"]: f"📅 {e['name']} ({e.get('date', '')})" for e in events}
+
+    from services.storage_service import get_default_event_id, set_default_event_id
+    default_id = get_default_event_id() or "churrasco_3_ele_2026"
+    if default_id not in event_ids and event_ids:
+        default_id = event_ids[0]
+
+    event_names = {}
+    for e in events:
+        is_def = (e["id"] == default_id)
+        pfx = "⭐ " if is_def else "📅 "
+        sfx = " [PADRÃO]" if is_def else ""
+        event_names[e["id"]] = f"{pfx}{e['name']} ({e.get('date', '')}){sfx}"
+
+    # 1. Prioridade absoluta para query parameter da URL (ex: ?event=churrasco_3_ele_2026)
+    qp_event = None
+    try:
+        qp_event = st.query_params.get("event")
+    except Exception:
+        pass
 
     current_id = st.session_state.get("active_event_id")
-    if not current_id or current_id not in event_ids:
-        current_id = get_initial_event_id(current_user)
-        if not current_id or current_id not in event_ids:
-            current_id = event_ids[0]
+
+    # Se a URL forneceu um evento válido e este difere do evento ativo atual na sessão, segue o link da URL!
+    if qp_event and qp_event in event_ids and qp_event != current_id:
+        current_id = qp_event
         st.session_state["active_event_id"] = current_id
         st.session_state["event_selector_box"] = current_id
 
-    # Sincroniza query parameter no navegador
+    # Se ainda não houver evento ativo válido na sessão
+    if not current_id or current_id not in event_ids:
+        current_id = get_initial_event_id(current_user)
+        if not current_id or current_id not in event_ids:
+            current_id = default_id if default_id in event_ids else event_ids[0]
+        st.session_state["active_event_id"] = current_id
+        st.session_state["event_selector_box"] = current_id
+
+    # Sincroniza query parameter no navegador com o evento ativo
     try:
         if st.query_params.get("event") != current_id:
             st.query_params["event"] = current_id
     except Exception:
         pass
-
-    # REGRA: Login de Visualização permite ver apenas o seu único evento associado
-    if current_user.get("role") == "visualizador":
-        chosen_id = events[0]["id"]
-        st.session_state["active_event_id"] = chosen_id
-        st.session_state["event_selector_box"] = chosen_id
-        try:
-            if st.query_params.get("event") != chosen_id:
-                st.query_params["event"] = chosen_id
-        except Exception:
-            pass
-        record_event_access(current_user, chosen_id)
-        st.markdown(
-            f"<div style='background: rgba(127,127,127,0.08); padding: 8px 14px; border-radius: 6px; font-size: 0.95rem;'>"
-            f"🎯 <b>Evento Autorizado:</b> 📅 <b>{events[0]['name']}</b> ({events[0].get('date', '')}) &nbsp;|&nbsp; <i>(Acesso exclusivo a este evento)</i></div>",
-            unsafe_allow_html=True
-        )
-        return chosen_id
 
     # Sincroniza o valor do selectbox com active_event_id
     if "event_selector_box" not in st.session_state or st.session_state["event_selector_box"] not in event_ids:
@@ -79,13 +87,13 @@ def render_event_selector() -> str:
 
     selected_index = event_ids.index(st.session_state["event_selector_box"])
 
-    # Colunas: Seletor, Novo, Clonar, Senha e Exclusão (se Master)
+    # Colunas: Seletor, Botão de Padrão, Novo, Clonar, Senha e Exclusão (se Master)
     if is_master():
-        col1, col2, col3, col4, col5 = st.columns([2.8, 1.1, 1.1, 1.3, 0.9])
+        col1, col_star, col2, col3, col4, col5 = st.columns([2.6, 1.2, 1.0, 1.0, 1.1, 0.8])
     elif can_edit():
-        col1, col2, col3 = st.columns([3.5, 1.2, 1.2])
+        col1, col_star, col2, col3 = st.columns([3.2, 1.3, 1.1, 1.1])
     else:
-        col1 = st.container()
+        col1, col_star = st.columns([3.5, 1.3])
 
     with col1:
         chosen_id = st.selectbox(
@@ -107,8 +115,31 @@ def render_event_selector() -> str:
         else:
             record_event_access(current_user, chosen_id)
 
+    with col_star:
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        is_default = (chosen_id == default_id)
+        if is_default:
+            st.button(
+                "⭐ Evento Padrão",
+                key="btn_is_default_disabled",
+                disabled=True,
+                use_container_width=True,
+                help="Este já é o evento padrão configurado para abrir automaticamente ao acessar o site."
+            )
+        else:
+            if st.button(
+                "⭐ Definir Padrão",
+                key="btn_set_default_active",
+                use_container_width=True,
+                help="Define este evento como o padrão que abrirá automaticamente para todos ao acessar https://mml-churrasco.streamlit.app"
+            ):
+                set_default_event_id(chosen_id)
+                st.toast(f"⭐ Evento definido como padrão com sucesso!", icon="⭐")
+                st.rerun()
+
     if can_edit():
         with col2:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             with st.popover("➕ Novo Evento"):
                 st.subheader("Criar Novo Evento")
                 st.caption("Cria uma base de dados em pasta própria e isolada.")
@@ -142,6 +173,7 @@ def render_event_selector() -> str:
                         st.error("Informe um nome para o evento.")
 
         with col3:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             with st.popover("📋 Clonar de Outro"):
                 st.subheader("Clonar Registros de Evento Existente")
                 st.caption("Copia consumíveis, fornecedores, receitas e tarefas mantendo total isolamento (sem vínculos).")
@@ -196,6 +228,7 @@ def render_event_selector() -> str:
     if is_master():
         curr_event = get_event(chosen_id) or {}
         with col4:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             curr_pwd = curr_event.get("access_password", "churras2025")
             with st.popover("🔐 Senha do Evento"):
                 st.subheader("Senha Geral do Evento")
@@ -213,6 +246,7 @@ def render_event_selector() -> str:
                         st.error("A senha não pode ser vazia.")
 
         with col5:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             with st.popover("🗑️ Excluir"):
                 st.subheader(f"Excluir Evento '{curr_event.get('name')}'")
                 st.caption("⚠️ Esta ação apagará apenas a pasta deste evento (`data/events/`). Devido ao isolamento total, nenhum outro evento será afetado.")

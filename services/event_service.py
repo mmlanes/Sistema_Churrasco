@@ -50,32 +50,28 @@ def list_events() -> List[Dict[str, Any]]:
 def list_events_for_user(user: dict) -> List[Dict[str, Any]]:
     """
     Retorna a lista de eventos permitidos para o usuário.
-    - Master: tem acesso a TODOS os eventos.
-    - Visualizador: tem permissão estrita para APENAS 1 evento associado.
-    - Colaborador / outros: tem acesso aos eventos liberados pelo Master.
+    - Master ou visitante: tem acesso a todos os eventos para seleção.
+    - Se '*' estiver em allowed_events: acesso a todos os eventos.
+    - Se houver eventos específicos em allowed_events: retorna apenas os eventos permitidos.
     """
     all_events = list_events()
+    if not all_events:
+        return []
+
     role = user.get("role", "visualizador")
-    if role == "master":
+    if role in ("master", "visitante"):
         return all_events
     
     allowed = user.get("allowed_events", [])
     if "*" in allowed:
         return all_events
 
-    if role == "visualizador":
-        if allowed:
-            target_id = allowed[0]
-            matched = [e for e in all_events if e["id"] == target_id]
-            if matched:
-                return matched
-        return all_events[:1]
+    if allowed:
+        matched = [e for e in all_events if e["id"] in allowed]
+        if matched:
+            return matched
 
-    # Para colaboradores:
-    if not allowed:
-        return all_events[:1]
-    
-    return [e for e in all_events if e["id"] in allowed]
+    return all_events
 
 
 def get_initial_event_id(user: Optional[dict] = None) -> str:
@@ -83,9 +79,10 @@ def get_initial_event_id(user: Optional[dict] = None) -> str:
     Determina o evento a ser selecionado quando o usuário acessa o sistema.
     Prioridades:
     1. Query param da URL (st.query_params['event']), se válido e permitido.
-    2. Último evento acessado pelo usuário (user['last_event_id']).
-    3. Último evento acessado globalmente no sistema (settings.json / Supabase).
-    4. Primeiro evento disponível/autorizado.
+    2. Evento padrão global configurado (default_event_id).
+    3. Último evento acessado pelo usuário (user['last_event_id']).
+    4. Último evento acessado globalmente no sistema (settings.json / Supabase).
+    5. Primeiro evento disponível/autorizado.
     """
     user = user or {}
     user_events = list_events_for_user(user)
@@ -103,7 +100,16 @@ def get_initial_event_id(user: Optional[dict] = None) -> str:
     except Exception:
         pass
 
-    # 2. Último evento acessado pelo usuário
+    # 2. Evento Padrão Global configurado
+    try:
+        from services.storage_service import get_default_event_id
+        def_ev = get_default_event_id()
+        if def_ev and def_ev in user_event_ids:
+            return def_ev
+    except Exception:
+        pass
+
+    # 3. Último evento acessado pelo usuário
     user_last = user.get("last_event_id")
     if not user_last and user.get("username"):
         from services.auth_service import get_user_last_event
@@ -111,7 +117,7 @@ def get_initial_event_id(user: Optional[dict] = None) -> str:
     if user_last and user_last in user_event_ids:
         return user_last
 
-    # 3. Último evento acessado globalmente
+    # 4. Último evento acessado globalmente
     try:
         from services.storage_service import get_system_last_event
         sys_last = get_system_last_event()
@@ -120,7 +126,7 @@ def get_initial_event_id(user: Optional[dict] = None) -> str:
     except Exception:
         pass
 
-    # 4. Primeiro evento disponível
+    # 5. Primeiro evento disponível
     return user_event_ids[0]
 
 
