@@ -297,32 +297,61 @@ def generate_general_event_pdf(
     pdf.set_text_color(0, 51, 102)
     pdf.cell(0, 8, clean_txt("5. QUADRO DE TAREFAS DOS COLABORADORES"), new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font("Helvetica", "B", 8)
-    pdf.set_fill_color(240, 240, 240)
-    pdf.cell(65, 6, clean_txt("Tarefa"), border=1, fill=True)
-    pdf.cell(40, 6, clean_txt("Colaborador"), border=1, fill=True)
-    pdf.cell(25, 6, clean_txt("Prazo"), border=1, fill=True, align="C")
-    pdf.cell(30, 6, clean_txt("Status"), border=1, fill=True, align="C")
-    pdf.cell(30, 6, clean_txt("Gasto Real"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+    def print_tasks_table_header():
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(240, 240, 240)
+        pdf.set_text_color(20, 30, 60)
+        pdf.cell(60, 6, clean_txt("Tarefa"), border=1, fill=True)
+        pdf.cell(35, 6, clean_txt("Colaborador"), border=1, fill=True)
+        pdf.cell(22, 6, clean_txt("Prazo"), border=1, fill=True, align="C")
+        pdf.cell(25, 6, clean_txt("Status"), border=1, fill=True, align="C")
+        pdf.cell(24, 6, clean_txt("Orçado"), border=1, fill=True, align="R")
+        pdf.cell(24, 6, clean_txt("Gasto Real"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    print_tasks_table_header()
+
+    # Unifica tarefas cadastradas com as receitas atribuídas a colaboradores para garantir exibição completa
+    unified_tasks = list(tasks)
+    existing_recipe_ids = {t.get("recipe_id") for t in unified_tasks if t.get("recipe_id")}
+    existing_titles_lower = {t.get("title", "").lower() for t in unified_tasks}
+
+    for r in recipes:
+        r_collab = r.get("assigned_to") or r.get("assigned_collaborator")
+        if r_collab and r_collab.strip() and r_collab.strip().lower() not in ["", "colaborador", "não atribuído", "não definido", "pendente"]:
+            r_id = r.get("id")
+            r_name = r.get("name", "").strip()
+            already_in = (r_id and r_id in existing_recipe_ids) or any(r_name.lower() in t_title for t_title in existing_titles_lower)
+            if not already_in:
+                unified_tasks.append({
+                    "id": f"tsk_rec_{r_id}",
+                    "recipe_id": r_id,
+                    "title": f"Preparar receita: {r_name}",
+                    "assigned_to": r_collab.strip(),
+                    "deadline": event_meta.get("date", "-"),
+                    "status": "Pendente",
+                    "budget": float(r.get("total_cost", 0.0) or 0.0),
+                    "actual_spent": 0.0
+                })
 
     pdf.set_font("Helvetica", "", 8)
-    for t in tasks:
-        if pdf.get_y() > 270:
-            pdf.add_page()
-            pdf.set_font("Helvetica", "B", 8)
-            pdf.set_fill_color(240, 240, 240)
-            pdf.cell(65, 6, clean_txt("Tarefa"), border=1, fill=True)
-            pdf.cell(40, 6, clean_txt("Colaborador"), border=1, fill=True)
-            pdf.cell(25, 6, clean_txt("Prazo"), border=1, fill=True, align="C")
-            pdf.cell(30, 6, clean_txt("Status"), border=1, fill=True, align="C")
-            pdf.cell(30, 6, clean_txt("Gasto Real"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
-            pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(30, 30, 30)
 
-        pdf.cell(65, 5, clean_txt(t.get("title", "")[:35]), border=1)
-        pdf.cell(40, 5, clean_txt(t.get("assigned_to", "Pendente")[:25]), border=1)
-        pdf.cell(25, 5, clean_txt(t.get("deadline", "")), border=1, align="C")
-        pdf.cell(30, 5, clean_txt(t.get("status", "")), border=1, align="C")
-        pdf.cell(30, 5, clean_txt(fmt_moeda(float(t.get("actual_spent", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+    if unified_tasks:
+        for t in unified_tasks:
+            if pdf.get_y() > 270:
+                pdf.add_page()
+                print_tasks_table_header()
+                pdf.set_font("Helvetica", "", 8)
+                pdf.set_text_color(30, 30, 30)
+
+            pdf.cell(60, 5, clean_txt(t.get("title", "")[:32]), border=1)
+            pdf.cell(35, 5, clean_txt(t.get("assigned_to", "Pendente")[:22]), border=1)
+            pdf.cell(22, 5, clean_txt(t.get("deadline", "-")[:12]), border=1, align="C")
+            pdf.cell(25, 5, clean_txt(t.get("status", "Pendente")[:14]), border=1, align="C")
+            pdf.cell(24, 5, clean_txt(fmt_moeda(float(t.get("budget", 0)))), border=1, align="R")
+            pdf.cell(24, 5, clean_txt(fmt_moeda(float(t.get("actual_spent", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+    else:
+        pdf.cell(190, 6, clean_txt("Nenhuma tarefa registrada para este evento."), border=1, align="C", new_x="LMARGIN", new_y="NEXT")
 
     # 6. RELAÇÃO GERAL DE PARTICIPANTES & CONTROLE DE COTAS
     pdf.add_page()

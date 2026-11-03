@@ -43,6 +43,10 @@ def render_reports(event_id: str):
 
 
 
+    # Sincroniza automaticamente tarefas de receitas pendentes com seus custos calculados
+    from services.event_service import sync_all_recipes_tasks
+    sync_all_recipes_tasks(event_id, user_name="Sistema")
+
     participants = get_event_data(event_id, "participants")
 
     consumables = get_event_data(event_id, "consumables")

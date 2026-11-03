@@ -9,6 +9,10 @@ def render_tasks(event_id: str):
     st.title("📌 Gestão e Atribuição de Tarefas")
     st.caption("Acompanhamento das responsabilidades de cada colaborador (quem faz o vinagrete, quem compra a carne, quem fecha o caixa etc.).")
 
+    # Sincroniza automaticamente tarefas de receitas pendentes com seus custos calculados
+    from services.event_service import sync_all_recipes_tasks
+    sync_all_recipes_tasks(event_id, user_name="Sistema")
+
     tasks = get_event_data(event_id, "tasks")
     collaborators = get_event_data(event_id, "collaborators")
     collab_names = [c["name"] for c in collaborators]

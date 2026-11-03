@@ -966,9 +966,75 @@
     "timestamp": "2026-11-03 11:04:06"
   },
   {
-    "timestamp": "2026-11-03 11:04:53",
     "user": "Matusalém",
     "action": "ATUALIZAR_RECIPES",
-    "details": "Atualizou ingrediente 'Suco de caju concentrado' na receita 'Suco de UVA (20L)'"
+    "details": "Atualizou ingrediente 'Suco de caju concentrado' na receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-03 11:04:53"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Vinagrete'",
+    "timestamp": "2026-11-03 14:09:02"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Pão de alho'",
+    "timestamp": "2026-11-03 14:09:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Torta doce'",
+    "timestamp": "2026-11-03 14:09:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-03 14:10:29"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Farofa'",
+    "timestamp": "2026-11-03 14:10:55"
+  },
+  {
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Criou tarefa básica para preparo da receita 'Vinagrete' atribuída a 'BIANCA'",
+    "timestamp": "2026-11-03 12:43:59"
+  },
+  {
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Criou tarefa básica para preparo da receita 'Farofa' atribuída a 'BEATRIZ VITÓRIA'",
+    "timestamp": "2026-11-03 12:44:02"
+  },
+  {
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Criou tarefa básica para preparo da receita 'Pão de alho' atribuída a 'LETÍCIA'",
+    "timestamp": "2026-11-03 12:44:05"
+  },
+  {
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Criou tarefa básica para preparo da receita 'Suco de UVA (20L)' atribuída a 'DANIELA VITÓRIA'",
+    "timestamp": "2026-11-03 12:44:08"
+  },
+  {
+    "user": "Sistema",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Criou tarefa básica para preparo da receita 'Torta doce' atribuída a 'Matusalém'",
+    "timestamp": "2026-11-03 12:44:10"
+  },
+  {
+    "timestamp": "2026-11-03 12:53:36",
+    "user": "TestVerification",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Sincronizou tarefas com as receitas atribuídas"
   }
 ]

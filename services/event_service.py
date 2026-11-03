@@ -691,26 +691,53 @@ def ensure_recipe_task(
 def sync_all_recipes_tasks(event_id: str, user_name: str = "Sistema") -> int:
     """
     Sincroniza todas as receitas que possuem colaborador atribuído com o quadro de tarefas,
-    criando tarefas básicas para as que ainda não possuírem. Retorna a quantidade de tarefas novas criadas.
+    criando tarefas básicas para as que ainda não possuírem e atualizando orçamentos calculados.
     """
+    from services.calculation_service import calculate_recipes_totals
     recipes = get_event_data(event_id, "recipes")
+    participants = get_event_data(event_id, "participants")
+    confirmed_count = len([p for p in participants if p.get("confirmed", True)]) or 35
+    calc_recipes, _ = calculate_recipes_totals(recipes, confirmed_count)
+
     tasks = get_event_data(event_id, "tasks")
     existing_recipe_ids = {t.get("recipe_id") for t in tasks if t.get("recipe_id")}
     existing_titles_lower = {t.get("title", "").lower() for t in tasks}
 
     created_count = 0
-    for r in recipes:
+    updated_tasks = False
+
+    for r in calc_recipes:
         collab = r.get("assigned_to") or r.get("assigned_collaborator")
         if collab and collab.strip() and collab.strip().lower() not in ["", "colaborador", "não atribuído", "não definido", "pendente"]:
             r_id = r.get("id")
             r_name = r.get("name", "").strip()
-            # Se já existir, pula ou garante vínculo
-            has_task = (r_id and r_id in existing_recipe_ids) or any(r_name.lower() in t_title for t_title in existing_titles_lower)
-            if not has_task:
+            r_cost = float(r.get("total_cost", 0.0) or 0.0)
+
+            matching_task = next((
+                t for t in tasks
+                if (r_id and t.get("recipe_id") == r_id) or (r_name.lower() in t.get("title", "").lower())
+            ), None)
+
+            if matching_task:
+                if r_id and not matching_task.get("recipe_id"):
+                    matching_task["recipe_id"] = r_id
+                    updated_tasks = True
+                if matching_task.get("assigned_to") != collab.strip():
+                    matching_task["assigned_to"] = collab.strip()
+                    updated_tasks = True
+                if float(matching_task.get("budget", 0.0) or 0.0) == 0.0 and r_cost > 0:
+                    matching_task["budget"] = r_cost
+                    updated_tasks = True
+            else:
                 task = ensure_recipe_task(event_id, r, collab, user_name)
                 if task:
                     created_count += 1
                     if r_id:
                         existing_recipe_ids.add(r_id)
                     existing_titles_lower.add(task.get("title", "").lower())
+                    tasks.append(task)
+
+    if updated_tasks:
+        save_event_data(event_id, "tasks", tasks, user_name, "Sincronizou tarefas com as receitas atribuídas")
+
     return created_count
