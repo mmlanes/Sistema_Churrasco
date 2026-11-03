@@ -2,8 +2,8 @@
   "major": 1,
   "minor": 1,
   "patch": 0,
-  "build": 3,
+  "build": 4,
   "version_str": "1.1.0",
-  "built_at": "03/11/2026 12:55",
-  "commit_hash": "2805072"
+  "built_at": "03/11/2026 13:13",
+  "commit_hash": "6ef12ff"
 }

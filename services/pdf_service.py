@@ -322,6 +322,12 @@ def generate_general_event_pdf(
             r_name = r.get("name", "").strip()
             already_in = (r_id and r_id in existing_recipe_ids) or any(r_name.lower() in t_title for t_title in existing_titles_lower)
             if not already_in:
+                std_yield = r.get("standard_yield", "")
+                unit = r.get("yield_unit", "kg")
+                yield_desc = f"{std_yield} {unit}".strip()
+                yield_info = f" (rendimento padrão estimado: {yield_desc})" if yield_desc else ""
+                inst_info = f" Instruções prévias: {r.get('instructions')}" if r.get("instructions") else ""
+                desc = f"Preparo da receita de {r_name}{yield_info}. Conferir/comprar ingredientes necessários, organizar recipientes e realizar o preparo antes ou durante o evento.{inst_info}"
                 unified_tasks.append({
                     "id": f"tsk_rec_{r_id}",
                     "recipe_id": r_id,
@@ -330,7 +336,9 @@ def generate_general_event_pdf(
                     "deadline": event_meta.get("date", "-"),
                     "status": "Pendente",
                     "budget": float(r.get("total_cost", 0.0) or 0.0),
-                    "actual_spent": 0.0
+                    "actual_spent": 0.0,
+                    "description": desc,
+                    "notes": "Tarefa gerada automaticamente ao associar a receita ao colaborador."
                 })
 
     pdf.set_font("Helvetica", "", 8)
@@ -352,6 +360,62 @@ def generate_general_event_pdf(
             pdf.cell(24, 5, clean_txt(fmt_moeda(float(t.get("actual_spent", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
     else:
         pdf.cell(190, 6, clean_txt("Nenhuma tarefa registrada para este evento."), border=1, align="C", new_x="LMARGIN", new_y="NEXT")
+
+    # Descrições detalhadas e instruções de cada tarefa abaixo do quadro
+    if unified_tasks:
+        pdf.ln(3)
+        if pdf.get_y() > 215:
+            pdf.add_page()
+
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.set_text_color(0, 51, 102)
+        pdf.cell(0, 6, clean_txt("Descrições Detalhadas e Instruções de Cada Tarefa:"), new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(1)
+
+        for i, t in enumerate(unified_tasks, 1):
+            if pdf.get_y() > 235:
+                pdf.add_page()
+
+            t_title = t.get("title", f"Tarefa {i}")
+            t_collab = t.get("assigned_to", "Pendente")
+            t_deadline = t.get("deadline", "-")
+            t_status = t.get("status", "Pendente")
+            t_budget = float(t.get("budget", 0.0) or 0.0)
+            t_spent = float(t.get("actual_spent", 0.0) or 0.0)
+            t_desc = (t.get("description") or "").strip()
+            t_notes = (t.get("notes") or "").strip()
+
+            # 1. Cabeçalho da Tarefa (Barra destacada)
+            pdf.set_font("Helvetica", "B", 8.5)
+            pdf.set_fill_color(230, 238, 248)
+            pdf.set_text_color(15, 30, 70)
+            header_txt = f"{i}. {t_title}  |  Responsável: {t_collab}"
+            pdf.cell(190, 5.5, clean_txt(header_txt), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+
+            # 2. Linha de Metadados (Prazo, Status, Orçado, Gasto Real)
+            pdf.set_font("Helvetica", "", 7.5)
+            pdf.set_fill_color(248, 249, 250)
+            pdf.set_text_color(80, 80, 80)
+            meta_txt = f"Prazo: {t_deadline}   |   Status: {t_status}   |   Orçado: {fmt_moeda(t_budget)}   |   Gasto Real: {fmt_moeda(t_spent)}"
+            pdf.cell(190, 4.5, clean_txt(meta_txt), border="LRB", fill=True, new_x="LMARGIN", new_y="NEXT")
+
+            # 3. Corpo da Descrição e Instruções
+            pdf.set_font("Helvetica", "", 8)
+            pdf.set_text_color(30, 30, 30)
+
+            full_desc_parts = []
+            if t_desc:
+                full_desc_parts.append(f"Instruções e Detalhes:\n{t_desc}")
+            else:
+                full_desc_parts.append("Instruções e Detalhes: Nenhuma descrição detalhada informada.")
+
+            if t_notes and t_notes != t_desc:
+                full_desc_parts.append(f"Observações: {t_notes}")
+
+            full_text = "\n\n".join(full_desc_parts)
+
+            pdf.multi_cell(190, 4.2, clean_txt(full_text), border="LRB", fill=False, new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(2.5)
 
     # 6. RELAÇÃO GERAL DE PARTICIPANTES & CONTROLE DE COTAS
     pdf.add_page()
