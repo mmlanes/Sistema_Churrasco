@@ -47,21 +47,25 @@ def render_reports(event_id: str):
         st.write(f"**Data Prevista:** {meta.get('date')} | **Descrição:** {meta.get('description', '-')}")
 
         c1, c2, c3 = st.columns(3)
+        from services.event_service import get_event_financial_summary
+        fin = get_event_financial_summary(event_id, confirmed_count)
+
         with c1:
             st.markdown("#### 👥 Participação")
             st.write(f"- Total de Inscritos: **{len(participants)} pessoas**")
             st.write(f"- Confirmados no cálculo: **{confirmed_count} pessoas**")
-            total_arrecadado = sum(float(p.get("paid_amount", 0)) for p in participants if p.get("paid"))
-            st.write(f"- Valor Total Quitado: **R$ {total_arrecadado:,.2f}**")
+            st.write(f"- Pagantes Quitados: **{len([p for p in participants if p.get('paid')])} pessoas**")
+            st.write(f"- **Total Arrecadado:** **R$ {fin['total_arrecadado']:,.2f}**")
+            st.caption(f"Cotas: R$ {fin['total_cotas_pagas']:,.2f} | Aportes: R$ {fin['entradas_caixa_avulsas']:,.2f}")
 
         with c2:
             st.markdown("#### 💰 Orçamento Estimado")
-            prev_direto = cons_summary["grand_total"]
-            prev_rec = rec_summary["recipes_grand_total"]
-            prev_total = prev_direto + prev_rec
-            st.write(f"- Consumíveis Diretos: **R$ {prev_direto:,.2f}**")
-            st.write(f"- Receitas Fabricadas: **R$ {prev_rec:,.2f}**")
-            st.write(f"- **Total Orçado:** **R$ {prev_total:,.2f}** (R$ {(prev_total / confirmed_count):,.2f} / pessoa)")
+            st.write(f"- Consumíveis & Insumos: **R$ {fin['previsto_direto']:,.2f}**")
+            st.write(f"- Receitas Fabricadas: **R$ {fin['previsto_receitas']:,.2f}**")
+            if fin['total_estrutura_extra'] > 0:
+                st.write(f"- Estrutura Extra: **R$ {fin['total_estrutura_extra']:,.2f}**")
+            st.write(f"- **Total Orçado:** **R$ {fin['previsto_total']:,.2f}** (R$ {fin['custo_por_pessoa']:,.2f} / pessoa)")
+            st.write(f"- **Saldo em Caixa:** **R$ {fin['saldo_caixa']:,.2f}**")
 
         with c3:
             st.markdown("#### 🥩🥤 Consumo por Pessoa")

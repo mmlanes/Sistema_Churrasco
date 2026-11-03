@@ -157,17 +157,32 @@ def render_consumables(event_id: str):
 
         # Formulário para Adicionar Consumível
         if can_edit():
-            with st.expander("➕ Adicionar Novo Consumível", expanded=(len(consumables) == 0)):
+            col_add_top1, col_add_top2 = st.columns([2.5, 1.5])
+            with col_add_top2:
+                from services.event_service import sync_cashflow_expenses_to_consumables
+                if st.button("🔄 Sincronizar Gastos de Estrutura do Caixa", use_container_width=True, help="Traz para esta lista gastos como Futebol de Sabão, Chácara, Som etc. lançados no Caixa"):
+                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                    c_added = sync_cashflow_expenses_to_consumables(event_id, user_name)
+                    if c_added > 0:
+                        st.success(f"{c_added} item(ns) de estrutura importado(s) com sucesso!")
+                    else:
+                        st.info("Nenhum novo item de estrutura pendente no Caixa.")
+                    st.rerun()
+
+            category_options = ["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "🎪 Estrutura & Atrações", "🏠 Locação de Espaço / Chácara", "Outros"]
+            unit_options = ["L", "kg", "un", "pct", "rolo", "serviço", "locação"]
+
+            with st.expander("➕ Adicionar Novo Consumível ou Atração/Estrutura", expanded=(len(consumables) == 0)):
                 with st.form("form_add_consumable", clear_on_submit=True):
                     c1, c2, c3 = st.columns([2, 1, 1])
-                    c_name = c1.text_input("Nome do Item (ex: Coca-cola 2L, Alcatra, Cerveja Lata, Pão de Alho)")
-                    c_cat = c2.selectbox("Categoria", ["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "Outros"])
-                    c_unit = c3.selectbox("Unidade Base", ["L", "kg", "un", "pct", "rolo"])
+                    c_name = c1.text_input("Nome do Item (ex: Coca-cola 2L, Alcatra, Futebol de Sabão, Carvão)")
+                    c_cat = c2.selectbox("Categoria", category_options)
+                    c_unit = c3.selectbox("Unidade Base", unit_options)
 
                     c4, c5, c6 = st.columns(3)
                     c_per_person = c4.number_input("Qtd por Pessoa (0 se for fixo)", value=0.1, step=0.05, format="%.3f")
                     c_fixed = c5.number_input("Qtd Fixa (se não for por pessoa)", value=0.0, step=1.0)
-                    c_pack = c6.number_input("Tamanho da Embalagem Comercial (ex: 2.0 p/ garrafa 2L, 40 p/ pacote 40un)", value=2.0, step=0.5)
+                    c_pack = c6.number_input("Tamanho da Embalagem Comercial (ex: 2.0 p/ garrafa 2L, 40 p/ pacote 40un, 1 p/ fixo)", value=2.0, step=0.5)
 
                     c7, c8, c9 = st.columns(3)
                     c_pack_name = c7.text_input("Nome da Embalagem (ex: Garrafa de 2L, Fardo com 12 latas)")
@@ -243,8 +258,12 @@ def render_consumables(event_id: str):
                     with st.form("form_edit_consumable"):
                         e1, e2, e3 = st.columns([2, 1, 1])
                         new_name = e1.text_input("Nome", value=curr_item["name"])
-                        new_cat = e2.selectbox("Categoria", ["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "Outros"], index=["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "Outros"].index(curr_item.get("category", "Bebidas")) if curr_item.get("category") in ["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "Outros"] else 0)
-                        new_unit = e3.selectbox("Unidade", ["L", "kg", "un", "pct", "rolo"], index=["L", "kg", "un", "pct", "rolo"].index(curr_item.get("unit", "L")) if curr_item.get("unit") in ["L", "kg", "un", "pct", "rolo"] else 0)
+                        cat_list = ["Bebidas", "Carnes", "Gelo / Carvão", "Acompanhamentos", "Descartáveis", "Sobremesas", "🎪 Estrutura & Atrações", "🏠 Locação de Espaço / Chácara", "Outros"]
+                        c_idx = cat_list.index(curr_item.get("category", "Bebidas")) if curr_item.get("category") in cat_list else 0
+                        new_cat = e2.selectbox("Categoria", cat_list, index=c_idx)
+                        u_list = ["L", "kg", "un", "pct", "rolo", "serviço", "locação"]
+                        u_idx = u_list.index(curr_item.get("unit", "L")) if curr_item.get("unit") in u_list else 0
+                        new_unit = e3.selectbox("Unidade", u_list, index=u_idx)
 
                         e4, e5, e6 = st.columns(3)
                         new_per_p = e4.number_input("Qtd por Pessoa", value=float(curr_item.get("per_person", 0)), step=0.05, format="%.3f")

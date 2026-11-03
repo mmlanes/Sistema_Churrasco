@@ -309,3 +309,214 @@ def delete_event(event_id: str, user_name: str = "Master") -> bool:
     return True
 
 
+def sync_participants_fees_to_cashflow(
+    event_id: str,
+    participants: Optional[List[Dict[str, Any]]] = None,
+    user_name: str = "Sistema"
+) -> float:
+    """
+    Sincroniza o valor arrecadado com as cotas dos participantes no Caixa (Extrato de Movimentações).
+    Cria ou atualiza uma entrada consolidada com as cotas quitadas.
+    """
+    if participants is None:
+        participants = get_event_data(event_id, "participants")
+
+    event_meta = get_event(event_id) or {}
+    default_fee = float(event_meta.get("default_fee_aluno", 25.0))
+    paid_parts = [p for p in participants if p.get("paid")]
+
+    total_paid = 0.0
+    for p in paid_parts:
+        amt = float(p.get("paid_amount", 0) or 0)
+        if amt <= 0:
+            amt = float(p.get("fee", default_fee) or default_fee)
+        total_paid += amt
+    total_paid = round(total_paid, 2)
+
+    cashflow = get_event_data(event_id, "cashflow")
+
+    # Procura entrada consolidada de cotas existente
+    cota_entry = next((
+        c for c in cashflow
+        if c.get("is_participant_fee") or c.get("category") == "Cotas dos Participantes" or "cotas dos participantes" in str(c.get("description", "")).lower()
+    ), None)
+
+    now_str = datetime.now().strftime("%Y-%m-%d")
+    desc = f"Arrecadação de Cotas dos Participantes ({len(paid_parts)} pagantes quitados)"
+
+    if cota_entry:
+        cota_entry["amount"] = total_paid
+        cota_entry["description"] = desc
+        cota_entry["category"] = "Cotas dos Participantes"
+        cota_entry["is_participant_fee"] = True
+        cota_entry["notes"] = f"Atualizado automaticamente a partir de {len(paid_parts)} participantes pagos."
+    else:
+        if total_paid > 0:
+            cota_entry = {
+                "id": f"csh_cotas_{str(uuid.uuid4())[:6]}",
+                "date": now_str,
+                "type": "ENTRADA",
+                "category": "Cotas dos Participantes",
+                "description": desc,
+                "amount": total_paid,
+                "payment_method": "PIX / Dinheiro",
+                "payer_or_receiver": "Participantes do Evento",
+                "attachment_name": "",
+                "is_participant_fee": True,
+                "notes": f"Gerado automaticamente a partir de {len(paid_parts)} participantes pagos."
+            }
+            cashflow.insert(0, cota_entry)
+
+    if total_paid > 0 or cota_entry:
+        save_event_data(event_id, "cashflow", cashflow, user_name, f"Sincronizou cotas dos participantes no Caixa (R$ {total_paid:.2f})")
+
+    return total_paid
+
+
+def sync_cashflow_expenses_to_consumables(event_id: str, user_name: str = "Sistema") -> int:
+    """
+    Identifica despesas de eventos lançadas no Caixa (como Futebol de Sabão, Aluguel de Espaço, Som, etc.)
+    e as adiciona aos consumíveis/itens de estrutura do evento caso ainda não estejam cadastrados.
+    """
+    cashflow = get_event_data(event_id, "cashflow")
+    consumables = get_event_data(event_id, "consumables")
+
+    consumable_names_lower = {str(c.get("name", "")).strip().lower() for c in consumables}
+    added_count = 0
+
+    for s in cashflow:
+        if s.get("type") == "SAIDA":
+            s_desc = str(s.get("description", "")).strip()
+            s_cat = str(s.get("category", "")).strip()
+            is_structure = (
+                any(k in s_desc.lower() for k in ["futebol", "sabão", "sabao", "brinquedo", "pula-pula", "chácara", "chacara", "aluguel", "som", "dj", "tenda", "locação", "locacao"])
+                or "estrutura" in s_cat.lower()
+                or "atração" in s_cat.lower()
+                or "serviço" in s_cat.lower()
+                or s.get("include_in_event_budget", False)
+            )
+            if is_structure and s_desc.lower() not in consumable_names_lower:
+                new_item = {
+                    "id": f"c_{str(uuid.uuid4())[:8]}",
+                    "name": s_desc,
+                    "category": "🎪 Estrutura & Atrações",
+                    "unit": "un",
+                    "per_person": 0.0,
+                    "fixed_quantity": 1.0,
+                    "package_size": 1.0,
+                    "package_unit_name": "Locação / Serviço",
+                    "unit_price": float(s.get("amount", 0)),
+                    "price_is_per_package": False,
+                    "supplier_id": "",
+                    "assigned_collaborator": s.get("payer_or_receiver", "") or "Comissão",
+                    "notes": f"Lançado no Caixa em {s.get('date', '')}. {s.get('notes', '')}".strip()
+                }
+                consumables.append(new_item)
+                consumable_names_lower.add(s_desc.lower())
+                added_count += 1
+
+    if added_count > 0:
+        save_event_data(event_id, "consumables", consumables, user_name, f"Adicionou {added_count} item(ns) de estrutura/atração a partir dos lançamentos de caixa")
+
+    return added_count
+
+
+def get_event_financial_summary(event_id: str, count_for_calc: int = 0) -> Dict[str, Any]:
+    """
+    Retorna o resumo financeiro unificado do evento:
+    - Total de cotas recebidas dos participantes
+    - Outras entradas do caixa (comissão, patrocínios)
+    - Total arrecadado consolidado
+    - Gastos reais efetuados (saídas do caixa)
+    - Saldo atual / sobra em caixa
+    - Orçamento previsto total (consumíveis + receitas + estrutura/serviços)
+    - Custo médio por participante
+    """
+    from services.calculation_service import calculate_consumables_totals, calculate_recipes_totals
+
+    participants = get_event_data(event_id, "participants")
+    consumables = get_event_data(event_id, "consumables")
+    recipes = get_event_data(event_id, "recipes")
+    cashflow = get_event_data(event_id, "cashflow")
+
+    total_parts = len(participants)
+    confirmed_parts = len([p for p in participants if p.get("confirmed", True)])
+    if count_for_calc <= 0:
+        count_for_calc = confirmed_parts if confirmed_parts > 0 else (total_parts or 1)
+
+    calc_consumables, cons_summary = calculate_consumables_totals(consumables, count_for_calc)
+    calc_recipes, rec_summary = calculate_recipes_totals(recipes, count_for_calc)
+
+    previsto_direto = cons_summary.get("grand_total", 0.0)
+    previsto_receitas = rec_summary.get("recipes_grand_total", 0.0)
+
+    # Identifica saídas do caixa que representam custos/atrações do evento que ainda não foram para consumíveis
+    consumable_names_lower = {str(c.get("name", "")).strip().lower() for c in consumables}
+    saidas_estrutura_extra = []
+    for s in cashflow:
+        if s.get("type") == "SAIDA":
+            s_desc = str(s.get("description", "")).strip()
+            s_cat = str(s.get("category", "")).strip()
+            is_structure = (
+                any(k in s_desc.lower() for k in ["futebol", "sabão", "sabao", "brinquedo", "pula-pula", "chácara", "chacara", "aluguel", "som", "dj", "tenda", "locação", "locacao"])
+                or "estrutura" in s_cat.lower()
+                or "atração" in s_cat.lower()
+                or "serviço" in s_cat.lower()
+                or s.get("include_in_event_budget", False)
+            )
+            if is_structure and s_desc.lower() not in consumable_names_lower:
+                saidas_estrutura_extra.append({
+                    "name": s_desc,
+                    "category": "🎪 Estrutura & Atrações",
+                    "total_cost": float(s.get("amount", 0)),
+                    "notes": s.get("notes", "")
+                })
+
+    total_estrutura_extra = sum(float(x["total_cost"]) for x in saidas_estrutura_extra)
+    previsto_total = previsto_direto + previsto_receitas + total_estrutura_extra
+    custo_por_pessoa = previsto_total / count_for_calc if count_for_calc > 0 else 0.0
+
+    # Unificação de arrecadação (Cotas + Caixa)
+    event_meta = get_event(event_id) or {}
+    default_fee = float(event_meta.get("default_fee_aluno", 25.0))
+    total_cotas_pagas = sum(
+        float(p.get("paid_amount", p.get("fee", default_fee))) if float(p.get("paid_amount", 0) or 0) > 0 else float(p.get("fee", default_fee) or default_fee)
+        for p in participants if p.get("paid")
+    )
+
+    entradas_caixa_cotas = sum(
+        float(c.get("amount", 0)) for c in cashflow
+        if c.get("type") == "ENTRADA" and (c.get("is_participant_fee") or "cotas dos participantes" in str(c.get("description", "")).lower() or c.get("category") == "Cotas dos Participantes")
+    )
+    entradas_caixa_avulsas = sum(
+        float(c.get("amount", 0)) for c in cashflow
+        if c.get("type") == "ENTRADA" and not (c.get("is_participant_fee") or "cotas dos participantes" in str(c.get("description", "")).lower() or c.get("category") == "Cotas dos Participantes")
+    )
+
+    total_arrecadado = entradas_caixa_avulsas + max(entradas_caixa_cotas, total_cotas_pagas)
+    total_gasto_real = sum(float(c.get("amount", 0)) for c in cashflow if c.get("type") == "SAIDA")
+    saldo_caixa = total_arrecadado - total_gasto_real
+
+    return {
+        "previsto_direto": round(previsto_direto, 2),
+        "previsto_receitas": round(previsto_receitas, 2),
+        "total_estrutura_extra": round(total_estrutura_extra, 2),
+        "saidas_estrutura_extra": saidas_estrutura_extra,
+        "previsto_total": round(previsto_total, 2),
+        "custo_por_pessoa": round(custo_por_pessoa, 2),
+        "total_cotas_pagas": round(total_cotas_pagas, 2),
+        "entradas_caixa_avulsas": round(entradas_caixa_avulsas, 2),
+        "entradas_caixa_cotas": round(entradas_caixa_cotas, 2),
+        "total_arrecadado": round(total_arrecadado, 2),
+        "total_gasto_real": round(total_gasto_real, 2),
+        "saldo_caixa": round(saldo_caixa, 2),
+        "count_for_calc": count_for_calc,
+        "total_parts": total_parts,
+        "confirmed_parts": confirmed_parts,
+        "calc_consumables": calc_consumables,
+        "cons_summary": cons_summary,
+        "calc_recipes": calc_recipes,
+        "rec_summary": rec_summary
+    }
+
+

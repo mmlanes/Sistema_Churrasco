@@ -28,13 +28,25 @@ def render_participants(event_id: str):
         total = len(participants)
         confirmados = len([p for p in participants if p.get("confirmed", True)])
         pagos = len([p for p in participants if p.get("paid", False)])
-        total_arrecadado = sum(float(p.get("paid_amount", 0)) for p in participants if p.get("paid"))
+        total_arrecadado = sum(float(p.get("paid_amount", p.get("fee", default_fee))) if float(p.get("paid_amount", 0) or 0) > 0 else float(p.get("fee", default_fee) or default_fee) for p in participants if p.get("paid"))
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Total Cadastrados", f"{total} pessoas")
         m2.metric("Confirmados", f"{confirmados} pessoas")
         m3.metric("Pagantes Quitados", f"{pagos} pessoas")
-        m4.metric("Valor Arrecadado", f"R$ {total_arrecadado:,.2f}")
+        m4.metric("Valor Arrecadado (Cotas)", f"R$ {total_arrecadado:,.2f}")
+
+        col_bar_info, col_bar_btn = st.columns([2.6, 1.4])
+        with col_bar_info:
+            st.caption(f"💰 **Total Arrecadado em Cotas:** **R$ {total_arrecadado:,.2f}** ({pagos} participante(s) quitado(s)). *Valores refletem no Total Arrecadado do Painel Geral.*")
+        if can_edit() and total_arrecadado > 0:
+            with col_bar_btn:
+                from services.event_service import sync_participants_fees_to_cashflow
+                if st.button("🔄 Sincronizar Cotas no Extrato do Caixa", key="btn_sync_cotas_top", use_container_width=True, help="Lança/atualiza uma entrada consolidada com as cotas recebidas no Extrato de Movimentações do Caixa"):
+                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                    val = sync_participants_fees_to_cashflow(event_id, participants, user_name)
+                    st.success(f"Cotas de R$ {val:,.2f} sincronizadas com o Caixa!")
+                    st.rerun()
 
         st.markdown("---")
 
@@ -222,6 +234,8 @@ def render_participants(event_id: str):
                                     updated_count += 1
 
                             save_event_data(event_id, "participants", participants, user_name, f"Atualizou em lote a cota de {updated_count} participantes para R$ {new_batch_fee:.2f}")
+                            from services.event_service import sync_participants_fees_to_cashflow
+                            sync_participants_fees_to_cashflow(event_id, participants, user_name)
                             st.success(f"Cota de {updated_count} participante(s) atualizada com sucesso para R$ {new_batch_fee:,.2f}!")
                             st.rerun()
 
@@ -260,6 +274,8 @@ def render_participants(event_id: str):
                                     participants = [p for p in participants if p["id"] not in del_candidates]
                                     removed_count = count_before - len(participants)
                                     save_event_data(event_id, "participants", participants, user_name, f"Excluiu {removed_count} participantes em lote")
+                                    from services.event_service import sync_participants_fees_to_cashflow
+                                    sync_participants_fees_to_cashflow(event_id, participants, user_name)
                                     st.warning(f"{removed_count} participante(s) removido(s) com sucesso!")
                                     st.rerun()
                                 else:
@@ -289,7 +305,9 @@ def render_participants(event_id: str):
                                         p["payment_method"] = forma_quit
                                         p["paid_amount"] = float(p.get("fee", default_fee))
                                 save_event_data(event_id, "participants", participants, user_name, f"Deu baixa de pagamento em lote para {len(selected_quit)} participantes via {forma_quit}")
-                                st.success(f"Pagamento de {len(selected_quit)} participante(s) confirmado com sucesso!")
+                                from services.event_service import sync_participants_fees_to_cashflow
+                                sync_participants_fees_to_cashflow(event_id, participants, user_name)
+                                st.success(f"Pagamento de {len(selected_quit)} participante(s) confirmado com sucesso e registrado no Caixa!")
                                 st.rerun()
                             else:
                                 st.error("Selecione ao menos um participante para dar baixa.")
@@ -364,7 +382,9 @@ def render_participants(event_id: str):
             # 4. EDIÇÃO DIRETA NA TABELA (st.data_editor)
             # ========================================================
             st.subheader("📋 Tabela de Participantes")
-            st.info("💡 **Edição Direta:** Você pode alterar qualquer valor clicando diretamente nas células da tabela. **Dica:** Se você alterar a Categoria de uma pessoa para **Colaborador**, o sistema a adicionará automaticamente à equipe de colaboradores ao salvar!")
+            st.info("💡 **Edição Direta:** Você pode marcar quem pagou diretamente na coluna **'Pago?'** ou alterar nomes, cotas e dados. "
+                    "**IMPORTANTE:** Para que as baixas de pagamento entrem no **Total Arrecadado** e sincronizem com o **Caixa**, "
+                    "você **deve clicar no botão abaixo '💾 Salvar Alterações da Tabela'**.")
 
             col_s1, col_s2 = st.columns([1.5, 3])
             save_table_btn = col_s1.button("💾 Salvar Alterações da Tabela", type="primary", use_container_width=True)
@@ -476,9 +496,15 @@ def render_participants(event_id: str):
                 if collabs_added > 0:
                     save_event_data(event_id, "collaborators", collaborators, user_name, f"Adicionou automaticamente {collabs_added} participante(s) à equipe de colaboradores")
                 
+                # Sincroniza automaticamente as cotas com o Caixa
+                from services.event_service import sync_participants_fees_to_cashflow
+                val_sync = sync_participants_fees_to_cashflow(event_id, new_records, user_name)
+
                 msg = "Tabela salva com sucesso!"
                 if collabs_added > 0:
                     msg += f" ({collabs_added} pessoa(s) adicionadas à equipe de colaboradores)"
+                if val_sync > 0:
+                    msg += f" | Cotas de R$ {val_sync:,.2f} integradas ao Caixa e Total Arrecadado."
                 st.success(msg)
                 st.rerun()
 
@@ -532,6 +558,8 @@ def render_participants(event_id: str):
                             curr_p["notes"] = new_notes
 
                             save_event_data(event_id, "participants", participants, user_name, f"Atualizou participante '{new_name}'")
+                            from services.event_service import sync_participants_fees_to_cashflow
+                            sync_participants_fees_to_cashflow(event_id, participants, user_name)
 
                             # Se mudou categoria para Colaborador e não estava na lista, adiciona
                             if new_cat == "Colaborador" and not is_already_collab:
@@ -568,6 +596,8 @@ def render_participants(event_id: str):
                             user_name = st.session_state.get("user", {}).get("name", "Usuário")
                             participants = [p for p in participants if p["id"] != selected_p_id]
                             save_event_data(event_id, "participants", participants, user_name, f"Excluiu participante '{curr_p['name']}'")
+                            from services.event_service import sync_participants_fees_to_cashflow
+                            sync_participants_fees_to_cashflow(event_id, participants, user_name)
                             st.warning(f"Participante '{curr_p['name']}' excluído.")
                             st.rerun()
         else:

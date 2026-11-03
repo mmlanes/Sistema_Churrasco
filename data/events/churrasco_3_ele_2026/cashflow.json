@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "id": "csh_cotas_d4dc7a",
+    "date": "2026-11-02",
+    "type": "ENTRADA",
+    "notes": "Atualizado automaticamente a partir de 21 participantes pagos.",
+    "amount": 225.0,
+    "category": "Cotas dos Participantes",
+    "description": "Arrecadação de Cotas dos Participantes (21 pagantes quitados)",
+    "payment_method": "PIX / Dinheiro",
+    "attachment_name": "",
+    "payer_or_receiver": "Participantes do Evento",
+    "is_participant_fee": true
+  },
+  {
+    "id": "csh_f6395a1c",
+    "date": "2026-11-02",
+    "type": "ENTRADA",
+    "notes": "",
+    "amount": 1100.0,
+    "category": "Geral",
+    "description": "Comissão de formatura",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "payer_or_receiver": ""
+  },
+  {
+    "id": "csh_9ce411f3",
+    "date": "2026-11-30",
+    "type": "SAIDA",
+    "notes": "",
+    "amount": 700.0,
+    "category": "Geral",
+    "description": "Futebol de sabão",
+    "payment_method": "PIX",
+    "attachment_name": "",
+    "payer_or_receiver": ""
+  }
+]

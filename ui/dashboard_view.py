@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
-from services.calculation_service import calculate_consumables_totals, calculate_recipes_totals
-from services.event_service import get_event, get_event_data
+from services.event_service import get_event, get_event_data, get_event_financial_summary
 
 
 def render_dashboard(event_id: str):
@@ -11,29 +10,28 @@ def render_dashboard(event_id: str):
         return
 
     participants = get_event_data(event_id, "participants")
-    consumables = get_event_data(event_id, "consumables")
-    recipes = get_event_data(event_id, "recipes")
     tasks = get_event_data(event_id, "tasks")
-    cashflow = get_event_data(event_id, "cashflow")
 
     # Contagem de participantes
     total_parts = len(participants)
     confirmed_parts = len([p for p in participants if p.get("confirmed", True)])
     count_for_calc = confirmed_parts if confirmed_parts > 0 else (total_parts or 1)
 
-    # Cálculos
-    calc_consumables, cons_summary = calculate_consumables_totals(consumables, count_for_calc)
-    calc_recipes, rec_summary = calculate_recipes_totals(recipes, count_for_calc)
+    # Resumo financeiro unificado do evento
+    fin = get_event_financial_summary(event_id, count_for_calc)
 
-    previsto_direto = cons_summary["grand_total"]
-    previsto_receitas = rec_summary["recipes_grand_total"]
-    previsto_total = previsto_direto + previsto_receitas
-    custo_por_pessoa = previsto_total / count_for_calc if count_for_calc > 0 else 0.0
-
-    # Financeiro / Caixa
-    total_arrecadado = sum(float(c.get("amount", 0)) for c in cashflow if c.get("type") == "ENTRADA")
-    total_gasto_real = sum(float(c.get("amount", 0)) for c in cashflow if c.get("type") == "SAIDA")
-    saldo_caixa = total_arrecadado - total_gasto_real
+    previsto_direto = fin["previsto_direto"]
+    previsto_receitas = fin["previsto_receitas"]
+    total_estrutura_extra = fin["total_estrutura_extra"]
+    saidas_estrutura_extra = fin["saidas_estrutura_extra"]
+    previsto_total = fin["previsto_total"]
+    custo_por_pessoa = fin["custo_por_pessoa"]
+    total_cotas_pagas = fin["total_cotas_pagas"]
+    entradas_caixa_avulsas = fin["entradas_caixa_avulsas"]
+    total_arrecadado = fin["total_arrecadado"]
+    total_gasto_real = fin["total_gasto_real"]
+    saldo_caixa = fin["saldo_caixa"]
+    cons_summary = fin["cons_summary"]
 
     # Tarefas
     tarefas_totais = len(tasks)
@@ -55,7 +53,7 @@ def render_dashboard(event_id: str):
         )
     with c2:
         st.metric(
-            label="💰 Orçamento Previsto",
+            label="💰 Orçamento Total Previsto",
             value=f"R$ {previsto_total:,.2f}",
             delta=f"R$ {custo_por_pessoa:,.2f} / pessoa"
         )
@@ -63,7 +61,7 @@ def render_dashboard(event_id: str):
         st.metric(
             label="💵 Total Arrecadado",
             value=f"R$ {total_arrecadado:,.2f}",
-            delta=f"{round((total_arrecadado / (previsto_total or 1)) * 100)}% da meta"
+            delta=f"Cotas: R$ {total_cotas_pagas:,.0f} | Aportes: R$ {entradas_caixa_avulsas:,.0f}"
         )
     with c4:
         delta_color = "normal" if saldo_caixa >= 0 else "inverse"
@@ -108,6 +106,27 @@ def render_dashboard(event_id: str):
             delta_color="off"
         )
 
+    # Se houver itens de estrutura e atrações (como Futebol de Sabão)
+    estrutura_items = [
+        c for c in fin["calc_consumables"] 
+        if "estrutura" in str(c.get("category", "")).lower() or "atração" in str(c.get("category", "")).lower() or "brinquedo" in str(c.get("category", "")).lower()
+    ] + saidas_estrutura_extra
+
+    if estrutura_items:
+        with st.expander("🎪 Ver Atrações, Estrutura e Locações Contratadas", expanded=True):
+            cols_est = st.columns(min(len(estrutura_items), 3))
+            for idx, item in enumerate(estrutura_items):
+                with cols_est[idx % len(cols_est)]:
+                    st.markdown(
+                        f"""
+                        <div style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid #6366F1; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="font-weight: bold; color: #4338CA;">🎪 {item.get('name')}</div>
+                            <div style="font-size: 0.9rem; color: #374151;">Valor: <b>R$ {float(item.get('total_cost', 0)):,.2f}</b> | Tipo: Custo Fixo do Evento</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
     st.markdown("---")
 
     # Gráficos e Distribuições
@@ -116,18 +135,20 @@ def render_dashboard(event_id: str):
     with gcol1:
         st.subheader("📈 Comparativo Financeiro")
         df_comp = pd.DataFrame({
-            "Categoria": ["Orçamento Previsto", "Total Arrecadado (Caixa)", "Gastos Reais Efetuados", "Saldo / Sobra"],
+            "Categoria": ["Orçamento Previsto", "Total Arrecadado", "Gastos Reais Efetuados", "Saldo / Sobra"],
             "Valor (R$)": [previsto_total, total_arrecadado, total_gasto_real, max(saldo_caixa, 0)]
         })
         st.bar_chart(df_comp.set_index("Categoria"), color="#2563EB", use_container_width=True)
 
     with gcol2:
         st.subheader("🥩 Custos Previstos por Categoria")
-        # Combina categorias dos consumíveis com receitas
+        # Combina categorias dos consumíveis com receitas e estrutura
         cat_data = dict(cons_summary.get("category_totals", {}))
         if previsto_receitas > 0:
             cat_data["Receitas Próprias (Farofa/Vinagrete)"] = previsto_receitas
-        
+        if total_estrutura_extra > 0 and "🎪 Estrutura & Atrações" not in cat_data:
+            cat_data["🎪 Estrutura & Atrações"] = total_estrutura_extra
+
         if cat_data:
             df_cat = pd.DataFrame(list(cat_data.items()), columns=["Categoria", "Valor (R$)"])
             st.bar_chart(df_cat.set_index("Categoria"), color="#DC2626", use_container_width=True)

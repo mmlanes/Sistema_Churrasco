@@ -19,19 +19,21 @@ def render_cashflow(event_id: str):
     cashflow = get_event_data(event_id, "cashflow")
     receipts_dir = get_event_uploads_dir(event_id, "receipts")
 
-    entradas = [c for c in cashflow if c.get("type") == "ENTRADA"]
-    saidas = [c for c in cashflow if c.get("type") == "SAIDA"]
+    from services.event_service import get_event_financial_summary, sync_cashflow_expenses_to_consumables
+    fin_summary = get_event_financial_summary(event_id)
 
-    total_in = sum(float(c.get("amount", 0)) for c in entradas)
-    total_out = sum(float(c.get("amount", 0)) for c in saidas)
-    saldo = total_in - total_out
+    total_in = fin_summary["total_arrecadado"]
+    total_out = fin_summary["total_gasto_real"]
+    saldo = fin_summary["saldo_caixa"]
 
     # Resumo em métricas
     m1, m2, m3 = st.columns(3)
-    m1.metric("Total Entradas (Caixa)", f"R$ {total_in:,.2f}")
+    m1.metric("Total Arrecadado (Consolidado)", f"R$ {total_in:,.2f}", help=f"Cotas Pagas: R$ {fin_summary['total_cotas_pagas']:,.2f} | Entradas Extras: R$ {fin_summary['entradas_caixa_avulsas']:,.2f}")
     m2.metric("Total Gastos Efetuados", f"R$ {total_out:,.2f}")
     delta_color = "normal" if saldo >= 0 else "inverse"
     m3.metric("Saldo Atual / Sobra em Caixa", f"R$ {saldo:,.2f}", delta_color=delta_color)
+
+    st.caption(f"💰 **Composição:** Cotas de participantes quitadas: **R$ {fin_summary['total_cotas_pagas']:,.2f}** | Aportes & Comissões: **R$ {fin_summary['entradas_caixa_avulsas']:,.2f}** | Saídas/Gastos Reais: **R$ {total_out:,.2f}**")
 
     st.markdown("---")
 
@@ -41,7 +43,19 @@ def render_cashflow(event_id: str):
     # ABA 1: TABELA DE LANÇAMENTOS
     # ========================================================
     with tab1:
-        st.subheader("Extrato de Movimentações")
+        col_hdr1, col_hdr2 = st.columns([2.5, 1.5])
+        with col_hdr1:
+            st.subheader("Extrato de Movimentações")
+        if can_edit():
+            with col_hdr2:
+                if st.button("🎪 Vincular Saídas como Itens de Estrutura", use_container_width=True, help="Identifica despesas como Futebol de Sabão, Aluguel de Chácara, Som etc. e as reflete no Orçamento e Apresentação do Evento"):
+                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                    n_added = sync_cashflow_expenses_to_consumables(event_id, user_name)
+                    if n_added > 0:
+                        st.success(f"{n_added} item(ns) de estrutura vinculado(s) ao evento!")
+                    else:
+                        st.info("Todos os itens de estrutura já estão vinculados.")
+                    st.rerun()
         if cashflow:
             df_cash = pd.DataFrame([
                 {
@@ -86,8 +100,28 @@ def render_cashflow(event_id: str):
             with st.form("form_add_cashflow", clear_on_submit=True):
                 c1, c2, c3 = st.columns([1.2, 2, 1.2])
                 cf_type = c1.selectbox("Tipo de Movimentação", ["SAIDA", "ENTRADA"], format_func=lambda x: "🔴 Saída / Gasto / Reembolso" if x == "SAIDA" else "🟢 Entrada / Arrecadação")
-                cf_desc = c2.text_input("Descrição (ex: Compra de Carne no Açougue, PIX Reembolso Marcelle, Cota Alunos) *")
+                cf_desc = c2.text_input("Descrição (ex: Futebol de Sabão, Compra de Carne no Açougue, Cota Alunos) *")
                 cf_amount = c3.number_input("Valor (R$)", value=50.0, step=10.0, format="%.2f")
+
+                c_cat1, c_cat2 = st.columns([2, 2])
+                cf_cat = c_cat1.selectbox(
+                    "Categoria do Lançamento",
+                    [
+                        "🎪 Estrutura & Atrações (Futebol de Sabão, Brinquedos, Som)",
+                        "🏠 Locação de Espaço / Chácara",
+                        "🥩 Carnes & Insumos de Churrasco",
+                        "🥤 Bebidas",
+                        "🍽️ Descartáveis & Limpeza",
+                        "💰 Cotas dos Participantes",
+                        "🤝 Comissão / Patrocínio / Doação",
+                        "💼 Geral / Outros"
+                    ]
+                )
+                cf_include_event = c_cat2.checkbox(
+                    "🎪 Vincular despesa ao Orçamento e Apresentação do Evento",
+                    value=True,
+                    help="Se marcado, esta despesa será incluída como item de estrutura/atração no painel principal e nos relatórios de custos e compras do evento."
+                )
 
                 c4, c5, c6 = st.columns(3)
                 cf_date = c4.date_input("Data do Pagamento")
@@ -120,17 +154,20 @@ def render_cashflow(event_id: str):
                         new_entry = {
                             "id": f"csh_{str(uuid.uuid4())[:8]}",
                             "type": cf_type,
-                            "category": "Geral",
+                            "category": cf_cat,
                             "description": cf_desc.strip(),
                             "amount": float(cf_amount),
                             "payer_or_receiver": cf_person.strip(),
                             "date": str(cf_date),
                             "payment_method": cf_method,
                             "attachment_name": filename,
+                            "include_in_event_budget": bool(cf_include_event),
                             "notes": cf_notes.strip()
                         }
                         cashflow.append(new_entry)
                         save_event_data(event_id, "cashflow", cashflow, user_name, f"Registrou {cf_type} de R$ {cf_amount:.2f}: '{cf_desc}'")
+                        if cf_type == "SAIDA" and cf_include_event:
+                            sync_cashflow_expenses_to_consumables(event_id, user_name)
                         st.success("Lançamento e comprovante registrados com sucesso!")
                         st.rerun()
                     else:
