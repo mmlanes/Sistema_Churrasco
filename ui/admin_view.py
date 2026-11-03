@@ -28,6 +28,15 @@ def render_admin(event_id: str):
     # ABA 1: GESTÃO DE USUÁRIOS
     # ========================================================
     with tab1:
+        # Informações da Versão e Compilação
+        with st.expander("ℹ️ Informações da Versão e Compilação do Sistema", expanded=False):
+            from version import APP_VERSION, BUILD_NUMBER, BUILD_DATETIME, GIT_COMMIT
+            col_v1, col_v2, col_v3 = st.columns(3)
+            col_v1.metric("Versão do App", f"v{APP_VERSION}")
+            col_v2.metric("Número do Build", f"#{BUILD_NUMBER}")
+            col_v3.metric("Data/Hora Compilação", BUILD_DATETIME)
+            st.caption(f"🔖 **Git Commit:** `{GIT_COMMIT}` | 🕒 **Fuso Horário:** Horário Oficial de Brasília (`America/Sao_Paulo`, UTC-3)")
+
         # Configuração do Evento Padrão Global do Sistema
         with st.expander("⭐ Definir Evento Padrão Global do Sistema", expanded=False):
             st.caption("Configura qual evento abrirá automaticamente para qualquer visitante ou usuário que acessar a URL principal do sistema (https://mml-churrasco.streamlit.app).")

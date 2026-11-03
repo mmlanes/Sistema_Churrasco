@@ -22,6 +22,34 @@ from ui.reports_view import render_reports
 from ui.suggestions_view import render_suggestions
 from ui.suppliers_view import render_suppliers
 from ui.tasks_view import render_tasks
+try:
+    from version import APP_VERSION, BUILD_NUMBER, BUILD_DATETIME, GIT_COMMIT
+except ImportError:
+    APP_VERSION = "1.1.0"
+    BUILD_NUMBER = 1
+    BUILD_DATETIME = "-"
+    GIT_COMMIT = ""
+
+
+def render_version_bar():
+    commit_badge = (
+        f"<span style='background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 2px 7px; border-radius: 5px; border: 1px solid rgba(16, 185, 129, 0.3); font-family: monospace; font-size: 0.78rem;'>#{GIT_COMMIT}</span>"
+        if GIT_COMMIT else ""
+    )
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-size: 0.82rem; opacity: 0.88; margin-top: -6px; margin-bottom: 8px; flex-wrap: wrap;">
+            <span style="background: rgba(59, 130, 246, 0.15); color: #3B82F6; padding: 2px 8px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.25);">
+                🏷️ v{APP_VERSION} (Build #{BUILD_NUMBER})
+            </span>
+            <span style="background: rgba(127, 127, 127, 0.12); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(127, 127, 127, 0.2);">
+                ⏱️ Compilado em: <b>{BUILD_DATETIME}</b>
+            </span>
+            {commit_badge}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def main():
@@ -29,8 +57,9 @@ def main():
     init_session_state()
     bootstrap_demo_event_if_needed()
 
-    # Barra superior com usuário logado e seletor de eventos
+    # Barra superior com usuário logado, versão do app e seletor de eventos
     render_user_header()
+    render_version_bar()
     st.write("")
     active_event_id = render_event_selector()
 
@@ -102,6 +131,7 @@ def main():
         else:
             st.caption("💾 **Banco de Dados:** Armazenamento Local")
         st.caption("🔒 **Isolamento de Dados:** Cada evento opera de forma independente.")
+        st.caption(f"🏷️ **Versão do App:** v{APP_VERSION} (Build #{BUILD_NUMBER}) • {BUILD_DATETIME}")
 
     # Renderização da página selecionada
     if selected_page == "📊 Painel Geral (Dashboard)":

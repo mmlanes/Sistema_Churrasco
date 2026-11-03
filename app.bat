@@ -14,6 +14,9 @@ if exist ".venv\Scripts\activate.bat" (
     echo Ambiente virtual nao encontrado. Usando Python padrao.
 )
 
+echo Atualizando versao de compilacao...
+python scripts\build.py
+
 echo Iniciando o aplicativo Streamlit...
 streamlit run app.py
 
@@ -22,4 +25,3 @@ if %ERRORLEVEL% NEQ 0 (
     echo Ocorreu um erro ao executar a aplicacao.
     pause
 )
- 
