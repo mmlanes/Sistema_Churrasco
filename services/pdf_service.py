@@ -78,9 +78,7 @@ def generate_general_event_pdf(
     
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(95, 6, clean_txt(f"Nome do Evento: {event_meta.get('name')}"))
-    pdf.cell(95, 6, clean_txt(f"Data: {event_meta.get('date')}"), new_x="LMARGIN", new_y="NEXT")
-    
+
     total_parts = len(participants)
     confirmed_parts = len([p for p in participants if p.get("confirmed")])
 
@@ -92,25 +90,36 @@ def generate_general_event_pdf(
     )
     total_collected = cotas_alunos + entradas_caixa_avulsas
 
-    pdf.cell(95, 6, clean_txt(f"Total Participantes: {total_parts} (Confirmados: {confirmed_parts})"))
-    pdf.cell(95, 6, clean_txt(f"Total Arrecadado: {fmt_moeda(total_collected)}"), new_x="LMARGIN", new_y="NEXT")
-
     total_previsto = consumables_summary.get("grand_total", 0.0) + recipes_summary.get("recipes_grand_total", 0.0)
     cost_per_person = total_previsto / (confirmed_parts or 1)
     
     balanco_val = total_collected - total_previsto
     balanco_label = f"Sobra Prevista: {fmt_moeda(balanco_val)}" if balanco_val >= 0 else f"Falta Arrecadar: {fmt_moeda(abs(balanco_val))}"
 
-    pdf.cell(95, 6, clean_txt(f"Orçamento Previsto (Itens + Receitas): {fmt_moeda(total_previsto)}"))
-    pdf.cell(95, 6, clean_txt(f"Balanço: {balanco_label}"), new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(95, 6, clean_txt(f"Custo Estimado / Pessoa: {fmt_moeda(cost_per_person)}"))
-
     meat_g = consumables_summary.get("meat_grams_per_person", 0.0)
     meat_tot = consumables_summary.get("total_meat_kg", 0.0)
     drink_l = consumables_summary.get("drinks_liters_per_person", 0.0)
     drink_tot = consumables_summary.get("total_drinks_liters", 0.0)
-    pdf.cell(95, 6, clean_txt(f"Carnes / Pessoa: {meat_g:.0f} g (Total: {meat_tot:.1f} kg)"))
-    pdf.cell(95, 6, clean_txt(f"Bebidas / Pessoa: {drink_l:.2f} L (Total: {drink_tot:.1f} L)"), new_x="LMARGIN", new_y="NEXT")
+
+    # Linha 1: Nome do Evento | Data
+    pdf.cell(95, 6, clean_txt(f"Nome do Evento: {event_meta.get('name')}"))
+    pdf.cell(95, 6, clean_txt(f"Data: {event_meta.get('date')}"), new_x="LMARGIN", new_y="NEXT")
+    
+    # Linha 2: Participantes | Total Arrecadado
+    pdf.cell(95, 6, clean_txt(f"Total Participantes: {total_parts} (Confirmados: {confirmed_parts})"))
+    pdf.cell(95, 6, clean_txt(f"Total Arrecadado: {fmt_moeda(total_collected)}"), new_x="LMARGIN", new_y="NEXT")
+
+    # Linha 3: Orçamento Previsto | Balanço
+    pdf.cell(95, 6, clean_txt(f"Orçamento Previsto (Itens + Receitas): {fmt_moeda(total_previsto)}"))
+    pdf.cell(95, 6, clean_txt(f"Balanço: {balanco_label}"), new_x="LMARGIN", new_y="NEXT")
+
+    # Linha 4: Custo Estimado / Pessoa | Carnes / Pessoa
+    pdf.cell(95, 6, clean_txt(f"Custo Estimado / Pessoa: {fmt_moeda(cost_per_person)}"))
+    pdf.cell(95, 6, clean_txt(f"Carnes / Pessoa: {meat_g:.0f} g (Total: {meat_tot:.1f} kg)"), new_x="LMARGIN", new_y="NEXT")
+
+    # Linha 5: Bebidas / Pessoa | Variedade
+    pdf.cell(95, 6, clean_txt(f"Bebidas / Pessoa: {drink_l:.2f} L (Total: {drink_tot:.1f} L)"))
+    pdf.cell(95, 6, clean_txt(f"Variedade: {consumables_summary.get('meat_items_count', 0)} carnes e {consumables_summary.get('drink_items_count', 0)} bebidas"), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # 2. QUADRO GERAL FINANCEIRO: ENTRADAS, DESPESAS & BALANÇO
