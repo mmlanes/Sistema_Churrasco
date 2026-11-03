@@ -113,10 +113,125 @@ def generate_general_event_pdf(
     pdf.cell(95, 6, clean_txt(f"Bebidas / Pessoa: {drink_l:.2f} L (Total: {drink_tot:.1f} L)"), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # 2. Resumo de Consumíveis Principais
+    # 2. QUADRO GERAL FINANCEIRO: ENTRADAS, DESPESAS & BALANÇO
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 8, clean_txt("2. CONSUMÍVEIS E ITENS DIRETOS"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, clean_txt("2. QUADRO GERAL FINANCEIRO: ENTRADAS, DESPESAS & BALANÇO"), new_x="LMARGIN", new_y="NEXT")
+
+    # A) TABELA DE ENTRADAS DE VALORES
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_text_color(22, 101, 52)
+    pdf.cell(0, 6, clean_txt("A) ENTRADAS DE VALORES & RECEITAS FINANCEIRAS"), new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(240, 248, 240)
+    pdf.set_text_color(30, 30, 30)
+    pdf.cell(95, 6, clean_txt("Origem / Descrição da Entrada"), border=1, fill=True)
+    pdf.cell(55, 6, clean_txt("Categoria / Identificação"), border=1, fill=True)
+    pdf.cell(40, 6, clean_txt("Valor Total"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 8)
+    qtd_pagantes = len([p for p in participants if p.get('paid')])
+    pdf.cell(95, 5, clean_txt(f"Cotas dos Alunos / Participantes ({qtd_pagantes} quitadas)"), border=1)
+    pdf.cell(55, 5, clean_txt("Cotas dos Participantes"), border=1)
+    pdf.cell(40, 5, clean_txt(fmt_moeda(cotas_alunos)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    for c_in in cashflow:
+        if c_in.get("type") == "ENTRADA":
+            c_desc = str(c_in.get("description", "")).strip()
+            c_cat = str(c_in.get("category", "")).strip()
+            is_cota = c_in.get("is_participant_fee") or "cotas dos participantes" in c_desc.lower() or c_cat == "Cotas dos Participantes"
+            if is_cota:
+                continue
+            is_fmt = any(k in c_desc.lower() or k in c_cat.lower() for k in ["formatura", "fundo", "comissão", "comissao"])
+            cat_display = "Fundo / Comissão Formatura" if is_fmt else (c_cat or "Receita Financeira")
+            pdf.cell(95, 5, clean_txt(c_desc[:50] or cat_display), border=1)
+            pdf.cell(55, 5, clean_txt(cat_display[:30]), border=1)
+            pdf.cell(40, 5, clean_txt(fmt_moeda(float(c_in.get("amount", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(240, 248, 240)
+    pdf.cell(150, 6, clean_txt("Total Geral de Entradas / Arrecadado:"), border=1, fill=True, align="R")
+    pdf.cell(40, 6, clean_txt(fmt_moeda(total_collected)), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+
+    # B) TABELA DE SAÍDAS DE VALORES (TOTAIS POR CATEGORIA E POR RECEITA)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_text_color(185, 28, 28)
+    pdf.cell(0, 6, clean_txt("B) DESPESAS DE VALORES: TOTAIS POR CATEGORIA E POR RECEITA FABRICADA"), new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(254, 242, 242)
+    pdf.set_text_color(30, 30, 30)
+    pdf.cell(95, 6, clean_txt("Item / Categoria / Receita Fabricada"), border=1, fill=True)
+    pdf.cell(55, 6, clean_txt("Tipo de Custo / Responsável"), border=1, fill=True)
+    pdf.cell(40, 6, clean_txt("Valor Total"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 8)
+    # 1. Categorias de consumíveis diretos (Carnes, Bebidas, etc.)
+    cons_cat_totals = dict(consumables_summary.get("category_totals", {}))
+    for cat_name, cat_val in cons_cat_totals.items():
+        is_struct = any(k in cat_name.lower() for k in ["estrutura", "atração", "atracao", "brinquedo", "locação", "locacao"])
+        if is_struct:
+            continue
+        pdf.cell(95, 5, clean_txt(f"Total com {cat_name}"), border=1)
+        pdf.cell(55, 5, clean_txt("Consumíveis Diretos"), border=1)
+        pdf.cell(40, 5, clean_txt(fmt_moeda(cat_val)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    # 2. Total individual de CADA receita fabricada por colaboradores
+    for r in recipes:
+        r_name = r.get("name", "Receita")
+        r_resp = r.get("assigned_collaborator") or r.get("assigned_to") or "Colaboradores"
+        r_cost = float(r.get("total_cost", 0.0))
+        pdf.cell(95, 5, clean_txt(f"Receita: {r_name}"), border=1)
+        pdf.cell(55, 5, clean_txt(f"Resp: {r_resp[:25]}"), border=1)
+        pdf.cell(40, 5, clean_txt(fmt_moeda(r_cost)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    # 3. Itens de Estrutura & Atrações
+    for c_item in consumables:
+        c_name = str(c_item.get("name", "")).strip()
+        c_cat = str(c_item.get("category", "")).strip()
+        is_struct = any(k in c_name.lower() for k in ["futebol", "sabão", "sabao", "brinquedo", "pula-pula", "chácara", "chacara", "aluguel", "som", "dj", "tenda", "locação", "locacao"]) or "estrutura" in c_cat.lower() or "atração" in c_cat.lower()
+        if is_struct:
+            pdf.cell(95, 5, clean_txt(f"Atração/Estrutura: {c_name}"), border=1)
+            pdf.cell(55, 5, clean_txt(c_item.get("assigned_collaborator") or "Comissão"), border=1)
+            pdf.cell(40, 5, clean_txt(fmt_moeda(float(c_item.get("total_cost", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(254, 242, 242)
+    pdf.cell(150, 6, clean_txt("Total Geral de Despesas Previstas:"), border=1, fill=True, align="R")
+    pdf.cell(40, 6, clean_txt(fmt_moeda(total_previsto)), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+
+    # C) RESUMO CONSOLIDADO DO BALANÇO (QUANTO SOBRA OU FALTA)
+    total_gasto_real = sum(float(c.get("amount", 0)) for c in cashflow if c.get("type") == "SAIDA")
+    saldo_real_caixa = total_collected - total_gasto_real
+    falta_val = max(0.0, total_previsto - total_collected)
+    sobra_val = max(0.0, total_collected - total_previsto)
+    pct_coberta = (total_collected / total_previsto * 100.0) if total_previsto > 0 else 0.0
+    rateio_falta = (falta_val / confirmed_parts) if (falta_val > 0 and confirmed_parts > 0) else 0.0
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(245, 245, 250)
+    pdf.cell(190, 6, clean_txt("C) BALANÇO FINANCEIRO DO EVENTO: QUANTO SOBRA OU FALTA"), border=1, fill=True, new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 8)
+    if falta_val > 0:
+        balanco_str = f"FALTA ARRECADAR: {fmt_moeda(falta_val)} ({pct_coberta:.1f}% da meta | Faltam ~{fmt_moeda(rateio_falta)} / pessoa)"
+        pdf.set_text_color(180, 0, 0)
+    else:
+        balanco_str = f"SOBRA PREVISTA: {fmt_moeda(sobra_val)} (100% dos custos cobertos)"
+        pdf.set_text_color(0, 120, 0)
+
+    pdf.cell(125, 6, clean_txt(f"Status da Meta: {balanco_str}"), border=1)
+    pdf.set_text_color(30, 30, 30)
+    pdf.cell(65, 6, clean_txt(f"Saldo Líquido em Caixa: {fmt_moeda(saldo_real_caixa)}"), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    # 3. Resumo de Consumíveis Principais
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 8, clean_txt("3. DETALHAMENTO DE CONSUMÍVEIS E ITENS DIRETOS"), new_x="LMARGIN", new_y="NEXT")
     
     # Cabeçalho Tabela
     pdf.set_font("Helvetica", "B", 8)
@@ -142,10 +257,10 @@ def generate_general_event_pdf(
     pdf.cell(25, 6, clean_txt(fmt_moeda(consumables_summary.get("grand_total", 0.0))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # 3. Itens Fabricados / Receitas (Farofa, Vinagrete, etc.)
+    # 4. Itens Fabricados / Receitas (Farofa, Vinagrete, etc.)
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 8, clean_txt("3. RECEITAS FABRICADAS POR COLABORADORES (Farofas, Vinagretes, etc.)"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, clean_txt("4. DETALHAMENTO DAS RECEITAS FABRICADAS POR COLABORADORES (Farofas, Vinagretes, etc.)"), new_x="LMARGIN", new_y="NEXT")
 
     for r in recipes:
         pdf.set_font("Helvetica", "B", 9)
@@ -166,11 +281,11 @@ def generate_general_event_pdf(
             pdf.cell(40, 5, clean_txt(fmt_moeda(float(ing.get("cost", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
 
-    # 4. Status das Tarefas dos Colaboradores
+    # 5. Status das Tarefas dos Colaboradores
     pdf.ln(2)
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 8, clean_txt("4. QUADRO DE TAREFAS DOS COLABORADORES"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, clean_txt("5. QUADRO DE TAREFAS DOS COLABORADORES"), new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_font("Helvetica", "B", 8)
     pdf.set_fill_color(240, 240, 240)
