@@ -21,17 +21,37 @@ def render_dashboard(event_id: str):
     fin = get_event_financial_summary(event_id, count_for_calc)
 
     previsto_direto = fin["previsto_direto"]
+    custo_consumiveis_diretos = fin["custo_consumiveis_diretos"]
+    consumiveis_categorias = fin["consumiveis_categorias"]
+    custo_receitas_fabricadas = fin["custo_receitas_fabricadas"]
     previsto_receitas = fin["previsto_receitas"]
+    custo_estrutura = fin["custo_estrutura"]
     total_estrutura_extra = fin["total_estrutura_extra"]
+    estrutura_items = fin["estrutura_items"]
     saidas_estrutura_extra = fin["saidas_estrutura_extra"]
     previsto_total = fin["previsto_total"]
     custo_por_pessoa = fin["custo_por_pessoa"]
+
     total_cotas_pagas = fin["total_cotas_pagas"]
+    qtd_cotas_pagas = fin["qtd_cotas_pagas"]
+    fundo_formatura_total = fin["fundo_formatura_total"]
+    outras_receitas_total = fin["outras_receitas_total"]
+    entradas_detalhadas = fin["entradas_detalhadas"]
     entradas_caixa_avulsas = fin["entradas_caixa_avulsas"]
     total_arrecadado = fin["total_arrecadado"]
     total_gasto_real = fin["total_gasto_real"]
     saldo_caixa = fin["saldo_caixa"]
+
+    falta_arrecadar = fin["falta_arrecadar"]
+    sobra_prevista = fin["sobra_prevista"]
+    pct_meta = fin["pct_meta"]
+    falta_por_pessoa = fin["falta_por_pessoa"]
+    sobra_por_pessoa = fin["sobra_por_pessoa"]
+
+    calc_consumables = fin["calc_consumables"]
     cons_summary = fin["cons_summary"]
+    calc_recipes = fin["calc_recipes"]
+    rec_summary = fin["rec_summary"]
 
     # Tarefas
     tarefas_totais = len(tasks)
@@ -61,16 +81,158 @@ def render_dashboard(event_id: str):
         st.metric(
             label="💵 Total Arrecadado",
             value=f"R$ {total_arrecadado:,.2f}",
-            delta=f"Cotas: R$ {total_cotas_pagas:,.0f} | Aportes: R$ {entradas_caixa_avulsas:,.0f}"
+            delta=f"Cotas: R$ {total_cotas_pagas:,.0f} | Fundo: R$ {fundo_formatura_total:,.0f}"
         )
     with c4:
         delta_color = "normal" if saldo_caixa >= 0 else "inverse"
         st.metric(
-            label="🏦 Saldo / Sobra de Caixa",
+            label="🏦 Saldo Líquido em Caixa",
             value=f"R$ {saldo_caixa:,.2f}",
-            delta=f"Gasto Real: R$ {total_gasto_real:,.2f}",
+            delta=f"Gasto Pago: R$ {total_gasto_real:,.2f}",
             delta_color=delta_color
         )
+
+    # =========================================================================
+    # QUADRO GERAL FINANCEIRO: ENTRADAS vs. DESPESAS & BALANÇO (SOBRA OU FALTA)
+    # =========================================================================
+    st.markdown("---")
+    st.subheader("💼 Quadro Geral Financeiro: Entradas vs. Despesas & Balanço")
+    st.caption("Resumo consolidado de todas as fontes de receitas financeiras, custos orçados e o balanço de quanto sobra ou falta para cobrir o evento.")
+
+    # Alerta em Destaque do Balanço
+    if falta_arrecadar > 0:
+        st.warning(
+            f"⚠️ **Balanço Orçamentário:** O total arrecadado até agora (**R$ {total_arrecadado:,.2f}**) cobre **{pct_meta:.1f}%** das despesas previstas (**R$ {previsto_total:,.2f}**). "
+            f"**FALTA ARRECADAR: R$ {falta_arrecadar:,.2f}** (em média **R$ {falta_por_pessoa:,.2f}** adicionais por participante para cobrir 100% dos custos)."
+        )
+    else:
+        st.success(
+            f"🎉 **Balanço Orçamentário:** A arrecadação total (**R$ {total_arrecadado:,.2f}**) cobre 100% das despesas previstas (**R$ {previsto_total:,.2f}**)! "
+            f"Há uma **SOBRA PREVISTA DE: R$ {sobra_prevista:,.2f}** (em média **R$ {sobra_por_pessoa:,.2f}** por participante)."
+        )
+
+    # 3 Métricas Rápidas do Balanço
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        st.metric(
+            label="🎯 Meta de Arrecadação",
+            value=f"{pct_meta:.1f}%",
+            delta=f"R$ {total_arrecadado:,.2f} de R$ {previsto_total:,.2f}"
+        )
+    with b2:
+        if falta_arrecadar > 0:
+            st.metric(
+                label="⚠️ Falta Arrecadar",
+                value=f"R$ {falta_arrecadar:,.2f}",
+                delta=f"Faltam ~R$ {falta_por_pessoa:,.2f} / pessoa",
+                delta_color="inverse"
+            )
+        else:
+            st.metric(
+                label="🟢 Sobra Prevista de Arrecadação",
+                value=f"R$ {sobra_prevista:,.2f}",
+                delta=f"Sobra ~R$ {sobra_por_pessoa:,.2f} / pessoa",
+                delta_color="normal"
+            )
+    with b3:
+        delta_color_cx = "normal" if saldo_caixa >= 0 else "inverse"
+        st.metric(
+            label="🏦 Saldo Líquido em Caixa",
+            value=f"R$ {saldo_caixa:,.2f}",
+            delta=f"Dinheiro real disponível (Gastos: R$ {total_gasto_real:,.2f})",
+            delta_color=delta_color_cx
+        )
+
+    progress_val = min(max(pct_meta / 100.0, 0.0), 1.0)
+    st.progress(progress_val, text=f"Progresso da Meta Financeira: {pct_meta:.1f}% arrecadado")
+
+    # Colunas Lado a Lado: Entradas vs Despesas
+    col_in, col_out = st.columns(2)
+
+    with col_in:
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 1.15rem; font-weight: bold; color: #16A34A;">💰 ENTRADAS & RECEITAS</span>
+                    <span style="font-size: 1.25rem; font-weight: 800; color: #16A34A;">R$ {total_arrecadado:,.2f}</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""
+                - 🎓 **Fundo / Comissão de Formatura:** **R$ {fundo_formatura_total:,.2f}**
+                - 👥 **Cotas dos Alunos / Participantes:** **R$ {total_cotas_pagas:,.2f}** *(quitadas por {qtd_cotas_pagas} participantes)*
+                - 💵 **Outras Receitas Financeiras / Aportes:** **R$ {outras_receitas_total:,.2f}**
+                """
+            )
+
+            with st.expander("🔍 Ver Detalhamento das Entradas", expanded=False):
+                entries_rows = []
+                if total_cotas_pagas > 0:
+                    entries_rows.append({
+                        "Origem / Categoria": "Cotas dos Alunos",
+                        "Descrição": f"Arrecadação de {qtd_cotas_pagas} participante(s) quitado(s)",
+                        "Valor": f"R$ {total_cotas_pagas:,.2f}"
+                    })
+                for e in entradas_detalhadas:
+                    entries_rows.append({
+                        "Origem / Categoria": e.get("category", "Receita"),
+                        "Descrição": e.get("description", "-"),
+                        "Valor": f"R$ {float(e.get('amount', 0)):,.2f}"
+                    })
+                if entries_rows:
+                    st.dataframe(pd.DataFrame(entries_rows), use_container_width=True, hide_index=True)
+                else:
+                    st.info("Nenhuma entrada registrada.")
+
+    with col_out:
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 1.15rem; font-weight: bold; color: #DC2626;">🥩 DESPESAS TOTAIS PREVISTAS</span>
+                    <span style="font-size: 1.25rem; font-weight: 800; color: #DC2626;">R$ {previsto_total:,.2f}</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""
+                - 🛒 **Consumíveis e Itens Diretos:** **R$ {custo_consumiveis_diretos:,.2f}** *(Carnes, Bebidas, Carvão/Gelo, Descartáveis, etc.)*
+                - 🍲 **Receitas Fabricadas por Colaboradores:** **R$ {custo_receitas_fabricadas:,.2f}** *({len(calc_recipes)} receitas caseiras)*
+                - 🎪 **Estrutura, Atrações & Locações:** **R$ {custo_estrutura:,.2f}** *(Futebol de sabão, tendas, som, etc.)*
+                """
+            )
+
+            with st.expander("🔍 Ver Detalhamento dos Blocos de Despesas", expanded=False):
+                expense_rows = []
+                for cat_k, cat_v in consumiveis_categorias.items():
+                    expense_rows.append({
+                        "Bloco": "Consumíveis Diretos",
+                        "Categoria / Item": cat_k,
+                        "Valor Previsto": f"R$ {cat_v:,.2f}"
+                    })
+                for r in calc_recipes:
+                    resp = r.get("assigned_collaborator") or "Não atribuído"
+                    expense_rows.append({
+                        "Bloco": "Receitas Fabricadas",
+                        "Categoria / Item": f"{r.get('name')} (Resp: {resp})",
+                        "Valor Previsto": f"R$ {float(r.get('total_cost', 0)):,.2f}"
+                    })
+                for est in estrutura_items:
+                    expense_rows.append({
+                        "Bloco": "Estrutura & Atrações",
+                        "Categoria / Item": est.get("name", "Atração"),
+                        "Valor Previsto": f"R$ {float(est.get('total_cost', 0)):,.2f}"
+                    })
+                if expense_rows:
+                    st.dataframe(pd.DataFrame(expense_rows), use_container_width=True, hide_index=True)
+                else:
+                    st.info("Nenhuma despesa prevista.")
+
+    st.markdown("---")
 
     # Linha 2 de Métricas: Consumo Per Capita (Carnes e Bebidas do Churrasco)
     k1, k2, k3 = st.columns(3)
@@ -107,11 +269,6 @@ def render_dashboard(event_id: str):
         )
 
     # Se houver itens de estrutura e atrações (como Futebol de Sabão)
-    estrutura_items = [
-        c for c in fin["calc_consumables"] 
-        if "estrutura" in str(c.get("category", "")).lower() or "atração" in str(c.get("category", "")).lower() or "brinquedo" in str(c.get("category", "")).lower()
-    ] + saidas_estrutura_extra
-
     if estrutura_items:
         with st.expander("🎪 Ver Atrações, Estrutura e Locações Contratadas", expanded=True):
             cols_est = st.columns(min(len(estrutura_items), 3))
@@ -135,7 +292,7 @@ def render_dashboard(event_id: str):
     with gcol1:
         st.subheader("📈 Comparativo Financeiro")
         df_comp = pd.DataFrame({
-            "Categoria": ["Orçamento Previsto", "Total Arrecadado", "Gastos Reais Efetuados", "Saldo / Sobra"],
+            "Categoria": ["Orçamento Previsto", "Total Arrecadado", "Gastos Reais Efetuados", "Saldo em Caixa"],
             "Valor (R$)": [previsto_total, total_arrecadado, total_gasto_real, max(saldo_caixa, 0)]
         })
         st.bar_chart(df_comp.set_index("Categoria"), color="#2563EB", use_container_width=True)
@@ -143,11 +300,11 @@ def render_dashboard(event_id: str):
     with gcol2:
         st.subheader("🥩 Custos Previstos por Categoria")
         # Combina categorias dos consumíveis com receitas e estrutura
-        cat_data = dict(cons_summary.get("category_totals", {}))
-        if previsto_receitas > 0:
-            cat_data["Receitas Próprias (Farofa/Vinagrete)"] = previsto_receitas
-        if total_estrutura_extra > 0 and "🎪 Estrutura & Atrações" not in cat_data:
-            cat_data["🎪 Estrutura & Atrações"] = total_estrutura_extra
+        cat_data = dict(consumiveis_categorias)
+        if custo_receitas_fabricadas > 0:
+            cat_data["Receitas Próprias"] = custo_receitas_fabricadas
+        if custo_estrutura > 0:
+            cat_data["🎪 Estrutura & Atrações"] = custo_estrutura
 
         if cat_data:
             df_cat = pd.DataFrame(list(cat_data.items()), columns=["Categoria", "Valor (R$)"])

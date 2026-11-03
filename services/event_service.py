@@ -478,44 +478,126 @@ def get_event_financial_summary(event_id: str, count_for_calc: int = 0) -> Dict[
                     "notes": s.get("notes", "")
                 })
 
-    total_estrutura_extra = sum(float(x["total_cost"]) for x in saidas_estrutura_extra)
-    previsto_total = previsto_direto + previsto_receitas + total_estrutura_extra
+    # Separacao de custos por grandes blocos:
+    # 1. Consumíveis Diretos de Consumo
+    # 2. Estrutura, Atrações & Locações
+    # 3. Receitas Fabricadas por Colaboradores
+    custo_consumiveis_diretos = 0.0
+    consumiveis_categorias = {}
+    estrutura_items = []
+
+    for c in calc_consumables:
+        c_name = str(c.get("name", "")).strip()
+        c_cat = str(c.get("category", "")).strip()
+        c_cost = float(c.get("total_cost", 0.0))
+        is_structure = (
+            any(k in c_name.lower() for k in ["futebol", "sabão", "sabao", "brinquedo", "pula-pula", "chácara", "chacara", "aluguel", "som", "dj", "tenda", "locação", "locacao"])
+            or "estrutura" in c_cat.lower()
+            or "atração" in c_cat.lower()
+            or "atracao" in c_cat.lower()
+            or "serviço" in c_cat.lower()
+            or "servico" in c_cat.lower()
+        )
+        if is_structure:
+            estrutura_items.append(c)
+        else:
+            custo_consumiveis_diretos += c_cost
+            consumiveis_categorias[c_cat] = consumiveis_categorias.get(c_cat, 0.0) + c_cost
+
+    # Agrega saídas do caixa que são estrutura mas ainda não constavam nos consumíveis
+    for s_item in saidas_estrutura_extra:
+        estrutura_items.append(s_item)
+
+    total_estrutura_extra = sum(float(x.get("total_cost", 0.0)) for x in saidas_estrutura_extra)
+    custo_estrutura = sum(float(x.get("total_cost", 0.0)) for x in estrutura_items)
+    custo_receitas_fabricadas = previsto_receitas
+    previsto_total = custo_consumiveis_diretos + custo_estrutura + custo_receitas_fabricadas
     custo_por_pessoa = previsto_total / count_for_calc if count_for_calc > 0 else 0.0
 
-    # Unificação de arrecadação (Cotas + Caixa)
+    # Unificação e discriminação de arrecadação (Cotas de Alunos + Fundo de Formatura + Outras Receitas)
     event_meta = get_event(event_id) or {}
     default_fee = float(event_meta.get("default_fee_aluno", 25.0))
     total_cotas_pagas = sum(
         float(p.get("paid_amount", p.get("fee", default_fee))) if float(p.get("paid_amount", 0) or 0) > 0 else float(p.get("fee", default_fee) or default_fee)
         for p in participants if p.get("paid")
     )
+    qtd_cotas_pagas = len([p for p in participants if p.get("paid")])
+
+    fundo_formatura_total = 0.0
+    outras_receitas_total = 0.0
+    entradas_detalhadas = []
+
+    for c in cashflow:
+        if c.get("type") == "ENTRADA":
+            amt = float(c.get("amount", 0))
+            desc = str(c.get("description", "")).strip()
+            cat = str(c.get("category", "")).strip()
+            is_cota = c.get("is_participant_fee") or "cotas dos participantes" in desc.lower() or cat == "Cotas dos Participantes"
+            if is_cota:
+                continue
+
+            is_formatura = any(k in desc.lower() or k in cat.lower() for k in ["formatura", "fundo", "comissão", "comissao", "comissao de formatura"])
+            if is_formatura:
+                fundo_formatura_total += amt
+                cat_desc = "Fundo / Comissão de Formatura"
+            else:
+                outras_receitas_total += amt
+                cat_desc = cat or "Receita Avulsa / Patrocínio"
+
+            entradas_detalhadas.append({
+                "description": desc or cat_desc,
+                "amount": amt,
+                "category": cat_desc,
+                "date": c.get("date", ""),
+                "payment_method": c.get("payment_method", "PIX")
+            })
 
     entradas_caixa_cotas = sum(
         float(c.get("amount", 0)) for c in cashflow
         if c.get("type") == "ENTRADA" and (c.get("is_participant_fee") or "cotas dos participantes" in str(c.get("description", "")).lower() or c.get("category") == "Cotas dos Participantes")
     )
-    entradas_caixa_avulsas = sum(
-        float(c.get("amount", 0)) for c in cashflow
-        if c.get("type") == "ENTRADA" and not (c.get("is_participant_fee") or "cotas dos participantes" in str(c.get("description", "")).lower() or c.get("category") == "Cotas dos Participantes")
-    )
-
+    entradas_caixa_avulsas = fundo_formatura_total + outras_receitas_total
     total_arrecadado = entradas_caixa_avulsas + max(entradas_caixa_cotas, total_cotas_pagas)
+
     total_gasto_real = sum(float(c.get("amount", 0)) for c in cashflow if c.get("type") == "SAIDA")
     saldo_caixa = total_arrecadado - total_gasto_real
 
+    # Balanço: Quanto sobra ou falta para cobrir o orçamento previsto
+    diferenca_meta = total_arrecadado - previsto_total
+    falta_arrecadar = max(0.0, previsto_total - total_arrecadado)
+    sobra_prevista = max(0.0, total_arrecadado - previsto_total)
+    pct_meta = (total_arrecadado / previsto_total * 100.0) if previsto_total > 0 else 0.0
+    falta_por_pessoa = (falta_arrecadar / count_for_calc) if (falta_arrecadar > 0 and count_for_calc > 0) else 0.0
+    sobra_por_pessoa = (sobra_prevista / count_for_calc) if (sobra_prevista > 0 and count_for_calc > 0) else 0.0
+
     return {
         "previsto_direto": round(previsto_direto, 2),
+        "custo_consumiveis_diretos": round(custo_consumiveis_diretos, 2),
+        "consumiveis_categorias": consumiveis_categorias,
+        "custo_receitas_fabricadas": round(custo_receitas_fabricadas, 2),
         "previsto_receitas": round(previsto_receitas, 2),
+        "custo_estrutura": round(custo_estrutura, 2),
         "total_estrutura_extra": round(total_estrutura_extra, 2),
+        "estrutura_items": estrutura_items,
         "saidas_estrutura_extra": saidas_estrutura_extra,
         "previsto_total": round(previsto_total, 2),
         "custo_por_pessoa": round(custo_por_pessoa, 2),
         "total_cotas_pagas": round(total_cotas_pagas, 2),
+        "qtd_cotas_pagas": qtd_cotas_pagas,
+        "fundo_formatura_total": round(fundo_formatura_total, 2),
+        "outras_receitas_total": round(outras_receitas_total, 2),
+        "entradas_detalhadas": entradas_detalhadas,
         "entradas_caixa_avulsas": round(entradas_caixa_avulsas, 2),
         "entradas_caixa_cotas": round(entradas_caixa_cotas, 2),
         "total_arrecadado": round(total_arrecadado, 2),
         "total_gasto_real": round(total_gasto_real, 2),
         "saldo_caixa": round(saldo_caixa, 2),
+        "diferenca_meta": round(diferenca_meta, 2),
+        "falta_arrecadar": round(falta_arrecadar, 2),
+        "sobra_prevista": round(sobra_prevista, 2),
+        "pct_meta": round(pct_meta, 1),
+        "falta_por_pessoa": round(falta_por_pessoa, 2),
+        "sobra_por_pessoa": round(sobra_por_pessoa, 2),
         "count_for_calc": count_for_calc,
         "total_parts": total_parts,
         "confirmed_parts": confirmed_parts,

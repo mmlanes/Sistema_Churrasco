@@ -50,22 +50,34 @@ def render_reports(event_id: str):
         from services.event_service import get_event_financial_summary
         fin = get_event_financial_summary(event_id, confirmed_count)
 
+        # Status do Balanço: Sobra ou Falta
+        if fin["falta_arrecadar"] > 0:
+            st.warning(
+                f"⚠️ **Balanço da Arrecadação:** O total arrecadado (**R$ {fin['total_arrecadado']:,.2f}**) cobre **{fin['pct_meta']:.1f}%** das despesas previstas (**R$ {fin['previsto_total']:,.2f}**). "
+                f"**FALTA ARRECADAR: R$ {fin['falta_arrecadar']:,.2f}** (em média **R$ {fin['falta_por_pessoa']:,.2f}** por participante confirmado)."
+            )
+        else:
+            st.success(
+                f"🎉 **Balanço da Arrecadação:** 100% das despesas previstas estão cobertas! "
+                f"**SOBRA PREVISTA: R$ {fin['sobra_prevista']:,.2f}** (em média **R$ {fin['sobra_por_pessoa']:,.2f}** por participante)."
+            )
+
         with c1:
             st.markdown("#### 👥 Participação")
             st.write(f"- Total de Inscritos: **{len(participants)} pessoas**")
             st.write(f"- Confirmados no cálculo: **{confirmed_count} pessoas**")
-            st.write(f"- Pagantes Quitados: **{len([p for p in participants if p.get('paid')])} pessoas**")
+            st.write(f"- Pagantes Quitados: **{fin['qtd_cotas_pagas']} pessoas**")
             st.write(f"- **Total Arrecadado:** **R$ {fin['total_arrecadado']:,.2f}**")
-            st.caption(f"Cotas: R$ {fin['total_cotas_pagas']:,.2f} | Aportes: R$ {fin['entradas_caixa_avulsas']:,.2f}")
+            st.caption(f"Cotas: R$ {fin['total_cotas_pagas']:,.2f} | Fundo: R$ {fin['fundo_formatura_total']:,.2f}")
 
         with c2:
             st.markdown("#### 💰 Orçamento Estimado")
-            st.write(f"- Consumíveis & Insumos: **R$ {fin['previsto_direto']:,.2f}**")
-            st.write(f"- Receitas Fabricadas: **R$ {fin['previsto_receitas']:,.2f}**")
-            if fin['total_estrutura_extra'] > 0:
-                st.write(f"- Estrutura Extra: **R$ {fin['total_estrutura_extra']:,.2f}**")
+            st.write(f"- Consumíveis Diretos: **R$ {fin['custo_consumiveis_diretos']:,.2f}**")
+            st.write(f"- Receitas Fabricadas: **R$ {fin['custo_receitas_fabricadas']:,.2f}**")
+            if fin['custo_estrutura'] > 0:
+                st.write(f"- Estrutura & Atrações: **R$ {fin['custo_estrutura']:,.2f}**")
             st.write(f"- **Total Orçado:** **R$ {fin['previsto_total']:,.2f}** (R$ {fin['custo_por_pessoa']:,.2f} / pessoa)")
-            st.write(f"- **Saldo em Caixa:** **R$ {fin['saldo_caixa']:,.2f}**")
+            st.write(f"- **Saldo Líquido em Caixa:** **R$ {fin['saldo_caixa']:,.2f}**")
 
         with c3:
             st.markdown("#### 🥩🥤 Consumo por Pessoa")
@@ -78,6 +90,30 @@ def render_reports(event_id: str):
             st.write(f"- 🥩 Carnes: **{meat_g:.0f} g / pessoa** (Total: **{meat_tot:.1f} kg**)")
             st.write(f"- 🥤 Bebidas: **{drink_l:.2f} L / pessoa** ({drink_ml:.0f} ml) (Total: **{drink_tot:.1f} L**)")
             st.write(f"- Variedade: **{cons_summary.get('meat_items_count', 0)}** carnes e **{cons_summary.get('drink_items_count', 0)}** bebidas")
+
+        # Quadro Geral Lado a Lado (Entradas vs Despesas)
+        st.markdown("##### 📋 Quadro Geral Financeiro do Evento")
+        col_in_rep, col_out_rep = st.columns(2)
+        with col_in_rep:
+            with st.container(border=True):
+                st.markdown(f"**💰 ENTRADAS DE VALORES & RECEITAS:** `R$ {fin['total_arrecadado']:,.2f}`")
+                st.markdown(
+                    f"""
+                    - 🎓 **Fundo / Comissão de Formatura:** R$ {fin['fundo_formatura_total']:,.2f}
+                    - 👥 **Cotas dos Alunos / Participantes:** R$ {fin['total_cotas_pagas']:,.2f} *({fin['qtd_cotas_pagas']} pagantes)*
+                    - 💵 **Outras Receitas Financeiras / Aportes:** R$ {fin['outras_receitas_total']:,.2f}
+                    """
+                )
+        with col_out_rep:
+            with st.container(border=True):
+                st.markdown(f"**🥩 DESPESAS TOTAIS PREVISTAS:** `R$ {fin['previsto_total']:,.2f}`")
+                st.markdown(
+                    f"""
+                    - 🛒 **Consumíveis e Itens Diretos:** R$ {fin['custo_consumiveis_diretos']:,.2f}
+                    - 🍲 **Receitas Fabricadas por Colaboradores:** R$ {fin['custo_receitas_fabricadas']:,.2f}
+                    - 🎪 **Estrutura, Atrações & Locações:** R$ {fin['custo_estrutura']:,.2f}
+                    """
+                )
 
         st.markdown("---")
 

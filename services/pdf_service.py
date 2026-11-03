@@ -83,16 +83,27 @@ def generate_general_event_pdf(
     
     total_parts = len(participants)
     confirmed_parts = len([p for p in participants if p.get("confirmed")])
-    total_collected = sum(p.get("paid_amount", 0) for p in participants if p.get("paid"))
-    
+
+    # Unificação de arrecadação (Cotas + Fundo de Formatura + Outras entradas)
+    cotas_alunos = sum(float(p.get("paid_amount", 0) or 0) for p in participants if p.get("paid"))
+    entradas_caixa_avulsas = sum(
+        float(c.get("amount", 0)) for c in cashflow
+        if c.get("type") == "ENTRADA" and not c.get("is_participant_fee") and "cotas dos participantes" not in str(c.get("description", "")).lower() and str(c.get("category", "")) != "Cotas dos Participantes"
+    )
+    total_collected = cotas_alunos + entradas_caixa_avulsas
+
     pdf.cell(95, 6, clean_txt(f"Total Participantes: {total_parts} (Confirmados: {confirmed_parts})"))
     pdf.cell(95, 6, clean_txt(f"Total Arrecadado: {fmt_moeda(total_collected)}"), new_x="LMARGIN", new_y="NEXT")
 
     total_previsto = consumables_summary.get("grand_total", 0.0) + recipes_summary.get("recipes_grand_total", 0.0)
     cost_per_person = total_previsto / (confirmed_parts or 1)
     
+    balanco_val = total_collected - total_previsto
+    balanco_label = f"Sobra Prevista: {fmt_moeda(balanco_val)}" if balanco_val >= 0 else f"Falta Arrecadar: {fmt_moeda(abs(balanco_val))}"
+
     pdf.cell(95, 6, clean_txt(f"Orçamento Previsto (Itens + Receitas): {fmt_moeda(total_previsto)}"))
-    pdf.cell(95, 6, clean_txt(f"Custo Estimado / Pessoa: {fmt_moeda(cost_per_person)}"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(95, 6, clean_txt(f"Balanço: {balanco_label}"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(95, 6, clean_txt(f"Custo Estimado / Pessoa: {fmt_moeda(cost_per_person)}"))
 
     meat_g = consumables_summary.get("meat_grams_per_person", 0.0)
     meat_tot = consumables_summary.get("total_meat_kg", 0.0)
