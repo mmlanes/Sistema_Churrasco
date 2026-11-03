@@ -1,79 +1,115 @@
 [
   {
     "id": "tsk_01",
+    "notes": "Gastou R$ 82,66. Deduzidos R$ 25 da sua própria cota, gerando PIX de reembolso de R$ 57,66.",
     "title": "Preparar Farofa e Vinagrete",
-    "description": "Comprar os ingredientes frescos, picar os legumes e preparar 3kg de Vinagrete e 3kg de Farofa com bacon e calabresa.",
-    "assigned_to": "Manuela",
-    "deadline": "2025-12-18",
-    "status": "Realizada",
     "budget": 132.4,
-    "actual_spent": 82.66,
-    "notes": "Gastou R$ 82,66. Deduzidos R$ 25 da sua própria cota, gerando PIX de reembolso de R$ 57,66."
+    "status": "Realizada",
+    "deadline": "2025-12-18",
+    "assigned_to": "Manuela",
+    "description": "Comprar os ingredientes frescos, picar os legumes e preparar 3kg de Vinagrete e 3kg de Farofa com bacon e calabresa.",
+    "actual_spent": 82.66
   },
   {
     "id": "tsk_02",
+    "notes": "Comprou marca especial de pão de alho recheado no valor de R$ 62,00. Reembolsada integralmente via PIX.",
     "title": "Comprar Pão de Alho",
-    "description": "Comprar pacote com 40 unidades de pão de alho na véspera e manter refrigerado.",
-    "assigned_to": "Marcelle",
-    "deadline": "2025-12-17",
-    "status": "Realizada",
     "budget": 40.0,
-    "actual_spent": 62.0,
-    "notes": "Comprou marca especial de pão de alho recheado no valor de R$ 62,00. Reembolsada integralmente via PIX."
+    "status": "Realizada",
+    "deadline": "2025-12-17",
+    "assigned_to": "Marcelle",
+    "description": "Comprar pacote com 40 unidades de pão de alho na véspera e manter refrigerado.",
+    "actual_spent": 62.0
   },
   {
     "id": "tsk_03",
+    "notes": "Comprou 110 picolés por R$ 165,00. Reembolsada integralmente via PIX pelo caixa.",
     "title": "Comprar 110 Picolés na Distribuidora",
-    "description": "Buscar os picolés na fábrica/distribuidora em caixa de isopor com gelo antes do evento.",
-    "assigned_to": "Júlia Marinho",
-    "deadline": "2025-12-18",
-    "status": "Realizada",
     "budget": 150.0,
-    "actual_spent": 165.0,
-    "notes": "Comprou 110 picolés por R$ 165,00. Reembolsada integralmente via PIX pelo caixa."
+    "status": "Realizada",
+    "deadline": "2025-12-18",
+    "assigned_to": "Júlia Marinho",
+    "description": "Buscar os picolés na fábrica/distribuidora em caixa de isopor com gelo antes do evento.",
+    "actual_spent": 165.0
   },
   {
     "id": "tsk_04",
+    "notes": "Compras divididas em duas etapas (R$ 225,28 + R$ 349,28) suprindo quantidade extra com excelente qualidade.",
     "title": "Comprar Carnes e Assar Churrasco",
-    "description": "Comprar as carnes no açougue (alcatra, linguiças, frango), temperar e comandar a churrasqueira.",
-    "assigned_to": "Matusalém",
-    "deadline": "2025-12-18",
-    "status": "Realizada",
     "budget": 185.0,
-    "actual_spent": 574.56,
-    "notes": "Compras divididas em duas etapas (R$ 225,28 + R$ 349,28) suprindo quantidade extra com excelente qualidade."
+    "status": "Realizada",
+    "deadline": "2025-12-18",
+    "assigned_to": "Matusalém",
+    "description": "Comprar as carnes no açougue (alcatra, linguiças, frango), temperar e comandar a churrasqueira.",
+    "actual_spent": 574.56
   },
   {
     "id": "tsk_05",
+    "notes": "Gastou R$ 124,00 com bebidas em promoção.",
     "title": "Comprar Bebidas e Gelo",
-    "description": "Comprar refrigerantes Coca 3L, Guaraná, sucos e 15kg de gelo.",
-    "assigned_to": "Matusalém",
-    "deadline": "2025-12-18",
-    "status": "Realizada",
     "budget": 183.0,
-    "actual_spent": 124.0,
-    "notes": "Gastou R$ 124,00 com bebidas em promoção."
+    "status": "Realizada",
+    "deadline": "2025-12-18",
+    "assigned_to": "Matusalém",
+    "description": "Comprar refrigerantes Coca 3L, Guaraná, sucos e 15kg de gelo.",
+    "actual_spent": 124.0
   },
   {
     "id": "tsk_06",
+    "notes": "Descartáveis foram aproveitados de estoque da escola sem custo adicional.",
     "title": "Providenciar Descartáveis e Limpeza",
-    "description": "Buscar pratos, copos, garfos, papel toalha e sacos de lixo.",
-    "assigned_to": "Douglas",
-    "deadline": "2025-12-17",
-    "status": "Realizada",
     "budget": 134.0,
-    "actual_spent": 0.0,
-    "notes": "Descartáveis foram aproveitados de estoque da escola sem custo adicional."
+    "status": "Realizada",
+    "deadline": "2025-12-17",
+    "assigned_to": "Douglas",
+    "description": "Buscar pratos, copos, garfos, papel toalha e sacos de lixo.",
+    "actual_spent": 0.0
   },
   {
     "id": "tsk_07",
+    "notes": "Fechamento realizado com sobras de R$ 91,06 no saldo final.",
     "title": "Recepção e Fechamento de Caixa",
-    "description": "Conferir comprovantes PIX dos alunos e servidores e liquidar os reembolsos dos colaboradores.",
-    "assigned_to": "Venzel",
-    "deadline": "2025-12-18",
+    "budget": 0.0,
     "status": "Realizada",
+    "deadline": "2025-12-18",
+    "assigned_to": "Venzel",
+    "description": "Conferir comprovantes PIX dos alunos e servidores e liquidar os reembolsos dos colaboradores.",
+    "actual_spent": 0.0
+  },
+  {
+    "id": "tsk_5a4a42f2",
+    "notes": "Tarefa gerada automaticamente ao associar a receita ao colaborador. Pode ser editada e detalhada livremente.",
+    "title": "Preparar receita: Vinagrete Especial para Churrasco",
+    "budget": 0.0,
+    "status": "Pendente",
+    "deadline": "2025-12-18",
+    "recipe_id": "rec_vinagrete",
+    "assigned_to": "Manuela",
+    "description": "Preparo da receita de Vinagrete Especial para Churrasco (rendimento padrão estimado: 3.0 kg). Conferir/comprar ingredientes necessários, organizar recipientes e realizar o preparo antes ou durante o evento. Instruções prévias: Picar tomate, cebola e pimentão em cubos pequenos. Misturar o cheiro verde, temperar com sal, azeite e vinagre.",
+    "actual_spent": 0.0
+  },
+  {
+    "id": "tsk_847830c5",
+    "notes": "Tarefa gerada automaticamente ao associar a receita ao colaborador. Pode ser editada e detalhada livremente.",
+    "title": "Preparar receita: Farofa Rica com Bacon e Calabresa",
+    "budget": 0.0,
+    "status": "Pendente",
+    "deadline": "2025-12-18",
+    "recipe_id": "rec_farofa",
+    "assigned_to": "Manuela",
+    "description": "Preparo da receita de Farofa Rica com Bacon e Calabresa (rendimento padrão estimado: 3.0 kg). Conferir/comprar ingredientes necessários, organizar recipientes e realizar o preparo antes ou durante o evento. Instruções prévias: Fritar o bacon e a linguiça calabresa picados com alho e cebola. Adicionar os ovos mexidos. Acrescentar a farofa pronta e misturar bem.",
+    "actual_spent": 0.0
+  },
+  {
+    "id": "tsk_2d372f52",
+    "recipe_id": "rec_torta",
+    "title": "Preparar receita: Torta Doce de Maracujá",
+    "description": "Preparo da receita de Torta Doce de Maracujá (rendimento padrão estimado: 1.0 torta). Conferir/comprar ingredientes necessários, organizar recipientes e realizar o preparo antes ou durante o evento. Instruções prévias: Bater leite condensado com creme de leite e suco concentrado de maracujá. Montar camadas com biscoito maisena e cobrir com raspas de chocolate.",
+    "assigned_to": "Manuela",
+    "deadline": "2025-12-18",
+    "status": "Pendente",
     "budget": 0.0,
     "actual_spent": 0.0,
-    "notes": "Fechamento realizado com sobras de R$ 91,06 no saldo final."
+    "notes": "Tarefa gerada automaticamente ao associar a receita ao colaborador. Pode ser editada e detalhada livremente."
   }
 ]

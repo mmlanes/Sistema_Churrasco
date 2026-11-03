@@ -756,9 +756,219 @@
     "timestamp": "2026-11-02 22:02:09"
   },
   {
-    "timestamp": "2026-11-02 22:08:42",
     "user": "Sistema",
     "action": "ATUALIZAR_CASHFLOW",
-    "details": "Sincronizou cotas dos participantes no Caixa (R$ 225.00)"
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 225.00)",
+    "timestamp": "2026-11-02 22:08:42"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (21 registros)",
+    "timestamp": "2026-11-03 02:08:41"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 225.00)",
+    "timestamp": "2026-11-03 02:08:42"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Suco de caju (feito com 3L suco concentrado)  20L' (Preço: R$ 1.2, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 02:27:21"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Suco de caju (feito com 3L suco concentrado)  20L' (Preço: R$ 1.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 02:28:05"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Arroz' na receita 'Arroz'",
+    "timestamp": "2026-11-03 02:49:24"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Arroz'",
+    "timestamp": "2026-11-03 02:49:49"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Oléo de soja' na receita 'Arroz'",
+    "timestamp": "2026-11-03 02:50:10"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Sal' na receita 'Arroz'",
+    "timestamp": "2026-11-03 02:51:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Sal' na receita 'Arroz'",
+    "timestamp": "2026-11-03 02:52:39"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Oléo de soja' na receita 'Arroz'",
+    "timestamp": "2026-11-03 02:52:59"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 10:44:55"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-03 10:46:20"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.15)",
+    "timestamp": "2026-11-03 10:46:35"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (21 registros)",
+    "timestamp": "2026-11-03 10:47:26"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_COLLABORATORS",
+    "details": "Adicionou automaticamente 2 participante(s) à equipe de colaboradores",
+    "timestamp": "2026-11-03 10:47:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 225.00)",
+    "timestamp": "2026-11-03 10:47:29"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (21 registros)",
+    "timestamp": "2026-11-03 10:48:03"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 205.00)",
+    "timestamp": "2026-11-03 10:48:05"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou participante 'REBECA'",
+    "timestamp": "2026-11-03 10:48:29"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou em massa 2 participantes na categoria 'Aluno'",
+    "timestamp": "2026-11-03 10:51:04"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou em massa 2 participantes na categoria 'Servidor/Professor'",
+    "timestamp": "2026-11-03 10:54:18"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (26 registros)",
+    "timestamp": "2026-11-03 10:55:24"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 290.00)",
+    "timestamp": "2026-11-03 10:55:26"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (26 registros)",
+    "timestamp": "2026-11-03 10:55:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_COLLABORATORS",
+    "details": "Adicionou automaticamente 2 participante(s) à equipe de colaboradores",
+    "timestamp": "2026-11-03 10:55:52"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 290.00)",
+    "timestamp": "2026-11-03 10:55:54"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.3)",
+    "timestamp": "2026-11-03 10:56:47"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.5)",
+    "timestamp": "2026-11-03 10:57:13"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.4)",
+    "timestamp": "2026-11-03 10:57:30"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Água com gás 1,5L' (Preço: R$ 5.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 10:58:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Luinguiça defumada' (Preço: R$ 35.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 10:58:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Suco de UVA (feito com 4L suco concentrado)  20L' (Preço: R$ 1.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 11:02:13"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Suco de UVA (feito com 4L suco concentrado)  20L' (Preço: R$ 13.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-03 11:03:18"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-03 11:04:06"
+  },
+  {
+    "timestamp": "2026-11-03 11:04:53",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Suco de caju concentrado' na receita 'Suco de UVA (20L)'"
   }
 ]

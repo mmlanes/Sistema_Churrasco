@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from config import EVENTS_DIR
+from config import EVENTS_DIR, get_now
 from services.storage_service import (
     get_event_dir,
     get_event_uploads_dir,
@@ -150,12 +150,12 @@ def create_event(name: str, description: str = "", date: str = "", created_by: s
     (event_dir / "uploads" / "receipts").mkdir(parents=True, exist_ok=True)
     (event_dir / "uploads" / "suppliers").mkdir(parents=True, exist_ok=True)
 
-    now_iso = datetime.now().isoformat()
+    now_iso = get_now().isoformat()
     meta = {
         "id": event_id,
         "name": name,
         "description": description,
-        "date": date or datetime.now().strftime("%Y-%m-%d"),
+        "date": date or get_now().strftime("%Y-%m-%d"),
         "created_at": now_iso,
         "updated_at": now_iso,
         "created_by": created_by,
@@ -205,7 +205,7 @@ def clone_event(
     new_event = create_event(
         name=new_name,
         description=f"Clonado a partir do evento '{source_event_id}'",
-        date=new_date or datetime.now().strftime("%Y-%m-%d"),
+        date=new_date or get_now().strftime("%Y-%m-%d"),
         created_by=created_by,
         access_password=access_password
     )
@@ -240,7 +240,7 @@ def clone_event(
             new_t["id"] = str(uuid.uuid4())[:8]
             new_t["status"] = "Pendente"
             new_t["actual_spent"] = 0.0
-            new_t["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_t["created_at"] = get_now().strftime("%Y-%m-%d %H:%M:%S")
             new_tasks.append(new_t)
         write_json(dest_dir / "tasks.json", new_tasks)
 
@@ -272,7 +272,7 @@ def update_event_password(event_id: str, new_password: str, user_name: str = "Ma
         return False
     meta = read_json(meta_file, {})
     meta["access_password"] = new_password.strip()
-    meta["updated_at"] = datetime.now().isoformat()
+    meta["updated_at"] = get_now().isoformat()
     write_json(meta_file, meta)
     append_audit_log(
         event_id,
@@ -347,7 +347,7 @@ def sync_participants_fees_to_cashflow(
         if c.get("is_participant_fee") or c.get("category") == "Cotas dos Participantes" or "cotas dos participantes" in str(c.get("description", "")).lower()
     ), None)
 
-    now_str = datetime.now().strftime("%Y-%m-%d")
+    now_str = get_now().strftime("%Y-%m-%d")
     desc = f"Arrecadação de Cotas dos Participantes ({len(paid_parts)} pagantes quitados)"
 
     if cota_entry:
@@ -608,3 +608,109 @@ def get_event_financial_summary(event_id: str, count_for_calc: int = 0) -> Dict[
     }
 
 
+
+
+def ensure_recipe_task(
+    event_id: str,
+    recipe: Dict[str, Any],
+    collaborator_name: str,
+    user_name: str = "Sistema"
+) -> Optional[Dict[str, Any]]:
+    """
+    Cria ou atualiza uma tarefa básica na lista de tarefas dos colaboradores
+    ao associar uma receita a ser fabricada a um colaborador.
+    A tarefa pode posteriormente ser editada e melhor detalhada pelo usuário.
+    """
+    collab = (collaborator_name or "").strip()
+    if not collab or collab.lower() in ["", "colaborador", "não atribuído", "não definido", "pendente"]:
+        return None
+
+    tasks = get_event_data(event_id, "tasks")
+    recipe_id = recipe.get("id")
+    recipe_name = recipe.get("name", "Receita").strip()
+
+    # Procura se já existe tarefa vinculada a esta receita
+    existing_task = None
+    for t in tasks:
+        # Match pelo recipe_id direto
+        if recipe_id and t.get("recipe_id") == recipe_id:
+            existing_task = t
+            break
+        # Match secundário pelo título com o nome da receita
+        t_title = t.get("title", "").lower()
+        if recipe_name.lower() in t_title and ("preparar" in t_title or "receita" in t_title or "fazer" in t_title):
+            existing_task = t
+            break
+
+    event_meta = get_event(event_id) or {}
+    event_date = event_meta.get("date", "")
+    cost = float(recipe.get("total_cost", 0.0) or 0.0)
+    std_yield = recipe.get("standard_yield", "")
+    unit = recipe.get("yield_unit", "kg")
+    yield_desc = f"{std_yield} {unit}".strip()
+
+    if existing_task:
+        # Atualiza o colaborador responsável caso tenha mudado
+        updated = False
+        if existing_task.get("assigned_to") != collab:
+            existing_task["assigned_to"] = collab
+            updated = True
+        if recipe_id and not existing_task.get("recipe_id"):
+            existing_task["recipe_id"] = recipe_id
+            updated = True
+        if updated:
+            save_event_data(
+                event_id, "tasks", tasks, user_name,
+                f"Atualizou colaborador da tarefa '{existing_task.get('title')}' para '{collab}'"
+            )
+        return existing_task
+
+    # Cria nova tarefa básica
+    yield_info = f" (rendimento padrão estimado: {yield_desc})" if yield_desc else ""
+    inst_info = f" Instruções prévias: {recipe.get('instructions')}" if recipe.get("instructions") else ""
+    new_task = {
+        "id": f"tsk_{str(uuid.uuid4())[:8]}",
+        "recipe_id": recipe_id,
+        "title": f"Preparar receita: {recipe_name}",
+        "description": f"Preparo da receita de {recipe_name}{yield_info}. Conferir/comprar ingredientes necessários, organizar recipientes e realizar o preparo antes ou durante o evento.{inst_info}",
+        "assigned_to": collab,
+        "deadline": event_date,
+        "status": "Pendente",
+        "budget": cost,
+        "actual_spent": 0.0,
+        "notes": "Tarefa gerada automaticamente ao associar a receita ao colaborador. Pode ser editada e detalhada livremente."
+    }
+    tasks.append(new_task)
+    save_event_data(
+        event_id, "tasks", tasks, user_name,
+        f"Criou tarefa básica para preparo da receita '{recipe_name}' atribuída a '{collab}'"
+    )
+    return new_task
+
+
+def sync_all_recipes_tasks(event_id: str, user_name: str = "Sistema") -> int:
+    """
+    Sincroniza todas as receitas que possuem colaborador atribuído com o quadro de tarefas,
+    criando tarefas básicas para as que ainda não possuírem. Retorna a quantidade de tarefas novas criadas.
+    """
+    recipes = get_event_data(event_id, "recipes")
+    tasks = get_event_data(event_id, "tasks")
+    existing_recipe_ids = {t.get("recipe_id") for t in tasks if t.get("recipe_id")}
+    existing_titles_lower = {t.get("title", "").lower() for t in tasks}
+
+    created_count = 0
+    for r in recipes:
+        collab = r.get("assigned_to") or r.get("assigned_collaborator")
+        if collab and collab.strip() and collab.strip().lower() not in ["", "colaborador", "não atribuído", "não definido", "pendente"]:
+            r_id = r.get("id")
+            r_name = r.get("name", "").strip()
+            # Se já existir, pula ou garante vínculo
+            has_task = (r_id and r_id in existing_recipe_ids) or any(r_name.lower() in t_title for t_title in existing_titles_lower)
+            if not has_task:
+                task = ensure_recipe_task(event_id, r, collab, user_name)
+                if task:
+                    created_count += 1
+                    if r_id:
+                        existing_recipe_ids.add(r_id)
+                    existing_titles_lower.add(task.get("title", "").lower())
+    return created_count

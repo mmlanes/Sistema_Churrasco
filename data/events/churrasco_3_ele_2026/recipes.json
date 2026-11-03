@@ -1,1 +1,296 @@
-[]
+[
+  {
+    "id": "rec_72a309c5",
+    "name": "Arroz",
+    "category": "Acompanhamentos",
+    "yield_unit": "kg",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "unit": "kg",
+        "quantity": 3.0,
+        "unit_price": 4.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Oléo de soja",
+        "unit": "L",
+        "quantity": 1.0,
+        "unit_price": 7.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Sal",
+        "unit": "kg",
+        "quantity": 0.1,
+        "unit_price": 7.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      }
+    ],
+    "instructions": "Arroz + tempero\nTrazer pronto",
+    "standard_yield": 3.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 0.1
+  },
+  {
+    "id": "rec_7b82088a",
+    "name": "Vinagrete",
+    "category": "Acompanhamentos",
+    "yield_unit": "kg",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Tomate",
+        "unit": "kg",
+        "quantity": 2.0,
+        "unit_price": 10.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Cebola",
+        "unit": "kg",
+        "quantity": 0.5,
+        "unit_price": 5.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Pimentão",
+        "unit": "kg",
+        "quantity": 0.3,
+        "unit_price": 7.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Salsinha",
+        "unit": "maço",
+        "quantity": 2.0,
+        "unit_price": 2.5,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Cebolinha",
+        "unit": "maço",
+        "quantity": 2.0,
+        "unit_price": 2.5,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Vinagre",
+        "unit": "L",
+        "quantity": 0.5,
+        "unit_price": 3.0,
+        "supplier_id": "",
+        "package_size": 0.75
+      }
+    ],
+    "instructions": "Vinagrete (3 Kg)\n------------------------\nTomate (Kg) - 2Kg\nCebola Kg) - 0,5Kg\nPimentão (Kg) - 0,3Kg\nSalsinha (maço) - 2\nCebolinha (maço) - 2\nVinagre (ml) 500ml",
+    "standard_yield": 3.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 0.12
+  },
+  {
+    "id": "rec_a1e7c24d",
+    "name": "Farofa",
+    "category": "Acompanhamentos",
+    "yield_unit": "kg",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Farofa pronta",
+        "unit": "kg",
+        "quantity": 2.0,
+        "unit_price": 8.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Cebola",
+        "unit": "kg",
+        "quantity": 1.0,
+        "unit_price": 5.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Bacon",
+        "unit": "kg",
+        "quantity": 1.0,
+        "unit_price": 40.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Linguiça calabresa",
+        "unit": "kg",
+        "quantity": 1.0,
+        "unit_price": 10.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Ovos mexidos",
+        "unit": "un",
+        "quantity": 12.0,
+        "unit_price": 0.5,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Alho picado",
+        "unit": "kg",
+        "quantity": 0.1,
+        "unit_price": 20.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      }
+    ],
+    "instructions": "Farofa (3 Kg)\n-----------------------------------\nFarofa pronta (400g) - 2Kg\nCebola (Kg) - 0,5Kg\nBacon (Kg) 0,5Kg\nLinguiça cal. (Kg) 0,5Kg\nOvos mexidos 12\nAlho picado (Kg) 0,1Kg",
+    "standard_yield": 3.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 0.12
+  },
+  {
+    "id": "rec_29ad8a39",
+    "name": "Pão de alho",
+    "category": "Acompanhamentos",
+    "yield_unit": "un",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Pão francês",
+        "unit": "un",
+        "quantity": 50.0,
+        "unit_price": 0.5,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Alho",
+        "unit": "kg",
+        "quantity": 0.2,
+        "unit_price": 20.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Orégano",
+        "unit": "kg",
+        "quantity": 0.2,
+        "unit_price": 100.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Requeijão",
+        "unit": "kg",
+        "quantity": 0.8,
+        "unit_price": 15.0,
+        "supplier_id": "",
+        "package_size": 0.4
+      },
+      {
+        "name": "Maionese",
+        "unit": "kg",
+        "quantity": 1.0,
+        "unit_price": 10.0,
+        "supplier_id": "",
+        "package_size": 0.5
+      }
+    ],
+    "instructions": "Pão de alho\n--------------------\nPão francês\nMolho",
+    "standard_yield": 30.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 1.0
+  },
+  {
+    "id": "rec_11cc1888",
+    "name": "Suco de UVA (20L)",
+    "category": "Acompanhamentos",
+    "yield_unit": "L",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Suco de caju concentrado",
+        "quantity": 4.0,
+        "unit": "L",
+        "unit_price": 13.0,
+        "package_size": 1.0,
+        "supplier_id": ""
+      },
+      {
+        "name": "Açucar",
+        "unit": "kg",
+        "quantity": 2.0,
+        "unit_price": 5.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      }
+    ],
+    "instructions": "4 garrafas de suco concentrado de UVA\n2 kg de açucar\n20 litros de água\n1 galão de 20 litros\n1 bebedouro",
+    "standard_yield": 20.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 0.9
+  },
+  {
+    "id": "rec_984b9d96",
+    "name": "Torta doce",
+    "category": "Acompanhamentos",
+    "yield_unit": "porções",
+    "assigned_to": "Colaborador",
+    "ingredients": [
+      {
+        "name": "Leite condensado",
+        "unit": "un",
+        "quantity": 5.0,
+        "unit_price": 7.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Creme de leite",
+        "unit": "un",
+        "quantity": 4.0,
+        "unit_price": 6.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Suco de maracujá",
+        "unit": "L",
+        "quantity": 0.2,
+        "unit_price": 5.0,
+        "supplier_id": "",
+        "package_size": 0.1
+      },
+      {
+        "name": "Biscoito maisena",
+        "unit": "pct",
+        "quantity": 5.0,
+        "unit_price": 7.0,
+        "supplier_id": "",
+        "package_size": 1.0
+      },
+      {
+        "name": "Chocolate",
+        "unit": "g",
+        "quantity": 100.0,
+        "unit_price": 0.05,
+        "supplier_id": "",
+        "package_size": 1.0
+      }
+    ],
+    "instructions": "Torta doce\n--------------------------------\nLeite condensado 3\nCreme de leite 3\nSuso de maracujá (200ml)\nBisc. maisena (175g) 3\nChocolate 100g - 1\nEmbalagem",
+    "standard_yield": 30.0,
+    "batch_multiplier": 1.0,
+    "portion_per_person": 1.0
+  }
+]

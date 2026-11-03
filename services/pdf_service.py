@@ -1,5 +1,6 @@
 import io
 from datetime import datetime
+from config import get_now
 from typing import Any, Dict, List
 
 try:
@@ -46,7 +47,7 @@ class ChurrascoPDF(FPDF):
         self.cell(0, 10, clean_txt(f"Calculadora de Churrasco - {self.event_name}"), new_x="LMARGIN", new_y="NEXT", align="L", fill=True)
         self.set_font("Helvetica", "I", 10)
         self.set_text_color(90, 100, 110)
-        self.cell(0, 6, clean_txt(f"{self.title_doc} | Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"), new_x="LMARGIN", new_y="NEXT", align="L")
+        self.cell(0, 6, clean_txt(f"{self.title_doc} | Gerado em: {get_now().strftime('%d/%m/%Y %H:%M')}"), new_x="LMARGIN", new_y="NEXT", align="L")
         self.ln(3)
 
     def footer(self):
@@ -306,11 +307,101 @@ def generate_general_event_pdf(
 
     pdf.set_font("Helvetica", "", 8)
     for t in tasks:
+        if pdf.get_y() > 270:
+            pdf.add_page()
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_fill_color(240, 240, 240)
+            pdf.cell(65, 6, clean_txt("Tarefa"), border=1, fill=True)
+            pdf.cell(40, 6, clean_txt("Colaborador"), border=1, fill=True)
+            pdf.cell(25, 6, clean_txt("Prazo"), border=1, fill=True, align="C")
+            pdf.cell(30, 6, clean_txt("Status"), border=1, fill=True, align="C")
+            pdf.cell(30, 6, clean_txt("Gasto Real"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+            pdf.set_font("Helvetica", "", 8)
+
         pdf.cell(65, 5, clean_txt(t.get("title", "")[:35]), border=1)
         pdf.cell(40, 5, clean_txt(t.get("assigned_to", "Pendente")[:25]), border=1)
         pdf.cell(25, 5, clean_txt(t.get("deadline", "")), border=1, align="C")
         pdf.cell(30, 5, clean_txt(t.get("status", "")), border=1, align="C")
         pdf.cell(30, 5, clean_txt(fmt_moeda(float(t.get("actual_spent", 0)))), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    # 6. RELAÇÃO GERAL DE PARTICIPANTES & CONTROLE DE COTAS
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 8, clean_txt("6. RELAÇÃO DE PARTICIPANTES & CONTROLE DE PAGAMENTO DE COTAS"), new_x="LMARGIN", new_y="NEXT")
+
+    total_parts_count = len(participants)
+    confirmed_parts_count = len([p for p in participants if p.get("confirmed", True)])
+    paid_parts = [p for p in participants if p.get("paid", False)]
+    paid_parts_count = len(paid_parts)
+    total_paid_val = sum(float(p.get("paid_amount", p.get("fee", 0)) or 0) for p in paid_parts)
+
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(50, 50, 50)
+    pdf.cell(
+        0, 6,
+        clean_txt(f"Total Cadastrados: {total_parts_count} | Confirmados: {confirmed_parts_count} | Quitados: {paid_parts_count} | Total Arrecadado em Cotas: {fmt_moeda(total_paid_val)}"),
+        new_x="LMARGIN", new_y="NEXT"
+    )
+    pdf.ln(2)
+
+    def print_participants_table_header():
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(230, 235, 245)
+        pdf.set_text_color(20, 30, 60)
+        pdf.cell(10, 6, clean_txt("#"), border=1, fill=True, align="C")
+        pdf.cell(62, 6, clean_txt("Nome do Participante"), border=1, fill=True)
+        pdf.cell(28, 6, clean_txt("Categoria"), border=1, fill=True)
+        pdf.cell(24, 6, clean_txt("Presença"), border=1, fill=True, align="C")
+        pdf.cell(24, 6, clean_txt("Status Cota"), border=1, fill=True, align="C")
+        pdf.cell(20, 6, clean_txt("Forma"), border=1, fill=True, align="C")
+        pdf.cell(22, 6, clean_txt("Valor Cota"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+
+    print_participants_table_header()
+
+    sorted_participants = sorted(participants, key=lambda p: clean_txt(p.get("name", "")).lower())
+
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(30, 30, 30)
+
+    if sorted_participants:
+        for idx, p in enumerate(sorted_participants, 1):
+            if pdf.get_y() > 270:
+                pdf.add_page()
+                print_participants_table_header()
+                pdf.set_font("Helvetica", "", 8)
+                pdf.set_text_color(30, 30, 30)
+
+            p_name = p.get("name", "Sem Nome")
+            p_cat = p.get("category", "Geral")
+            is_conf = bool(p.get("confirmed", True))
+            conf_str = "Confirmado" if is_conf else "Ausente/Pend."
+            is_paid = bool(p.get("paid", False))
+            paid_str = "Quitado" if is_paid else "Pendente"
+            p_method = p.get("payment_method", "-") if is_paid else "-"
+            fee_val = float(p.get("paid_amount", p.get("fee", 0.0)) or 0.0) if is_paid else float(p.get("fee", 0.0) or 0.0)
+
+            pdf.cell(10, 5, clean_txt(f"{idx:02d}"), border=1, align="C")
+            pdf.cell(62, 5, clean_txt(p_name[:32]), border=1)
+            pdf.cell(28, 5, clean_txt(p_cat[:16]), border=1)
+            pdf.cell(24, 5, clean_txt(conf_str), border=1, align="C")
+
+            if is_paid:
+                pdf.set_text_color(22, 101, 52)
+            else:
+                pdf.set_text_color(185, 28, 28)
+            pdf.cell(24, 5, clean_txt(paid_str), border=1, align="C")
+            pdf.set_text_color(30, 30, 30)
+
+            pdf.cell(20, 5, clean_txt(p_method[:10]), border=1, align="C")
+            pdf.cell(22, 5, clean_txt(fmt_moeda(fee_val)), border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(240, 248, 240)
+        pdf.cell(168, 6, clean_txt(f"Total Arrecadado das Cotas Quitadas ({paid_parts_count} pagantes):"), border=1, fill=True, align="R")
+        pdf.cell(22, 6, clean_txt(fmt_moeda(total_paid_val)), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
+    else:
+        pdf.cell(190, 6, clean_txt("Nenhum participante registrado neste evento."), border=1, align="C", new_x="LMARGIN", new_y="NEXT")
 
     return bytes(pdf.output())
 

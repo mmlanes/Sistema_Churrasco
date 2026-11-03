@@ -325,7 +325,21 @@ def render_consumables(event_id: str):
         st.subheader("🥗 Consumíveis Fabricados por Colaboradores")
         st.caption("Receitas que utilizam múltiplos ingredientes (ex: Farofa com bacon/calabresa, Vinagrete temperado, Tortas doces). O sistema calcula a quantidade total de cada ingrediente e o custo por fornecedor.")
 
-        st.metric("Custo Total Estimado das Receitas", f"R$ {rec_summary['recipes_grand_total']:,.2f}")
+        col_m_rec1, col_m_rec2 = st.columns([2.5, 1.5])
+        with col_m_rec1:
+            st.metric("Custo Total Estimado das Receitas", f"R$ {rec_summary['recipes_grand_total']:,.2f}")
+        with col_m_rec2:
+            if can_edit():
+                st.write("")
+                from services.event_service import sync_all_recipes_tasks
+                if st.button("🔄 Sincronizar Tarefas de Receitas", key="btn_sync_recipes_tasks_tab2", use_container_width=True, help="Gera tarefas pendentes para todas as receitas com colaborador definido"):
+                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                    c_tasks = sync_all_recipes_tasks(event_id, user_name)
+                    if c_tasks > 0:
+                        st.success(f"🎉 {c_tasks} tarefa(s) gerada(s) em '📌 Tarefas dos Colaboradores'!")
+                    else:
+                        st.info("Todas as receitas com colaboradores já possuem tarefas no quadro.")
+                    st.rerun()
 
         # Mensagem explicativa caso o usuário esteja em modo somente leitura
         if not can_edit():
@@ -363,7 +377,12 @@ def render_consumables(event_id: str):
                             }
                             recipes.append(new_r)
                             save_event_data(event_id, "recipes", recipes, user_name, f"Criou receita '{rec_name}'")
-                            st.success(f"Receita '{rec_name}' criada! Agora adicione os ingredientes abaixo.")
+                            if rec_collab and rec_collab.strip() not in ["", "Colaborador"]:
+                                from services.event_service import ensure_recipe_task
+                                ensure_recipe_task(event_id, new_r, rec_collab, user_name)
+                                st.success(f"Receita '{rec_name}' criada e tarefa gerada para {rec_collab} em '📌 Tarefas dos Colaboradores'!")
+                            else:
+                                st.success(f"Receita '{rec_name}' criada! Agora adicione os ingredientes abaixo.")
                             st.rerun()
 
         # Listagem e Gestão de cada receita existente
@@ -410,7 +429,12 @@ def render_consumables(event_id: str):
                                                 orig_r["portion_per_person"] = float(e_rec_portion)
                                                 orig_r["instructions"] = e_rec_inst
                                                 save_event_data(event_id, "recipes", recipes, user_name, f"Editou receita '{e_rec_name.strip()}'")
-                                                st.success(f"Receita '{e_rec_name.strip()}' atualizada!")
+                                                if e_rec_collab and e_rec_collab.strip() not in ["", "Colaborador"]:
+                                                    from services.event_service import ensure_recipe_task
+                                                    ensure_recipe_task(event_id, orig_r, e_rec_collab, user_name)
+                                                    st.success(f"Receita '{e_rec_name.strip()}' atualizada e tarefa vinculada a {e_rec_collab} em '📌 Tarefas dos Colaboradores'!")
+                                                else:
+                                                    st.success(f"Receita '{e_rec_name.strip()}' atualizada!")
                                                 st.rerun()
                                         else:
                                             st.error("O nome da receita não pode ficar vazio.")

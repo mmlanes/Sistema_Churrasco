@@ -3,7 +3,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from config import EVENTS_DIR, GLOBAL_USERS_FILE
+from config import get_now, EVENTS_DIR, GLOBAL_USERS_FILE
 from services.supabase_service import (
     is_supabase_available,
     get_global_doc,
@@ -107,7 +107,7 @@ def append_audit_log(event_id: str, user_name: str, action: str, details: str) -
     if not event_id:
         return
     log_entry = {
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "timestamp": get_now().strftime("%Y-%m-%d %H:%M:%S"),
         "user": user_name or "Anônimo",
         "action": action,
         "details": details
@@ -142,7 +142,7 @@ def get_audit_logs(event_id: str) -> List[Dict[str, Any]]:
 
 def get_system_last_event() -> Optional[str]:
     """Retorna o ID do último evento acessado globalmente no sistema."""
-    from config import GLOBAL_SETTINGS_FILE
+    from config import get_now, GLOBAL_SETTINGS_FILE
     data = read_json(GLOBAL_SETTINGS_FILE, default={})
     if isinstance(data, dict):
         return data.get("last_accessed_event_id")
@@ -153,19 +153,19 @@ def set_system_last_event(event_id: str) -> None:
     """Registra o último evento acessado no sistema global."""
     if not event_id:
         return
-    from config import GLOBAL_SETTINGS_FILE
+    from config import get_now, GLOBAL_SETTINGS_FILE
     data = read_json(GLOBAL_SETTINGS_FILE, default={})
     if not isinstance(data, dict):
         data = {}
     if data.get("last_accessed_event_id") != event_id:
         data["last_accessed_event_id"] = event_id
-        data["updated_at"] = datetime.now().isoformat()
+        data["updated_at"] = get_now().isoformat()
         write_json(GLOBAL_SETTINGS_FILE, data)
 
 
 def get_default_event_id() -> Optional[str]:
     """Retorna o ID do evento padrão configurado para o sistema."""
-    from config import GLOBAL_SETTINGS_FILE
+    from config import get_now, GLOBAL_SETTINGS_FILE
     data = read_json(GLOBAL_SETTINGS_FILE, default={})
     if isinstance(data, dict):
         return data.get("default_event_id")
@@ -176,11 +176,11 @@ def set_default_event_id(event_id: str) -> None:
     """Configura o evento padrão global do sistema e persiste no settings.json e Supabase."""
     if not event_id:
         return
-    from config import GLOBAL_SETTINGS_FILE
+    from config import get_now, GLOBAL_SETTINGS_FILE
     data = read_json(GLOBAL_SETTINGS_FILE, default={})
     if not isinstance(data, dict):
         data = {}
     data["default_event_id"] = event_id
     data["last_accessed_event_id"] = event_id
-    data["updated_at"] = datetime.now().isoformat()
+    data["updated_at"] = get_now().isoformat()
     write_json(GLOBAL_SETTINGS_FILE, data)

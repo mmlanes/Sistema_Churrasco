@@ -1,3 +1,4 @@
+from config import get_now
 import io
 import json
 import zipfile
@@ -39,7 +40,7 @@ def export_event_database(event_id: str) -> Dict[str, Any]:
     meta = get_event(event_id) or {}
     ev_data: Dict[str, Any] = {
         "export_version": "1.0",
-        "exported_at": datetime.now().isoformat(),
+        "exported_at": get_now().isoformat(),
         "type": "single_event_backup",
         "id": event_id,
         "event_id": event_id,
@@ -81,7 +82,7 @@ def export_full_database() -> Dict[str, Any]:
 
     full_backup = {
         "export_version": "1.0",
-        "exported_at": datetime.now().isoformat(),
+        "exported_at": get_now().isoformat(),
         "type": "full_system_backup",
         "system_title": "Sistema de Gestão e Calculadora de Churrasco",
         "stats": {

@@ -73,12 +73,12 @@ def render_tasks(event_id: str):
                         unsafe_allow_html=True
                     )
 
-                    # Botões de Ação para o Colaborador
+                    # Botões de Ação e Edição Detalhada para o Colaborador
                     if can_edit():
-                        col_b1, col_b2, col_b3 = st.columns([1.5, 1.5, 2])
+                        col_b1, col_b2, col_b3, col_b4 = st.columns([1.4, 1.3, 1.3, 1.3])
                         with col_b1:
                             new_st = st.selectbox(
-                                "Atualizar Status:",
+                                "Status:",
                                 ["Pendente", "Em Andamento", "Parcial", "Realizada", "Cancelada"],
                                 index=["Pendente", "Em Andamento", "Parcial", "Realizada", "Cancelada"].index(status) if status in ["Pendente", "Em Andamento", "Parcial", "Realizada", "Cancelada"] else 0,
                                 key=f"st_sel_{t['id']}"
@@ -91,8 +91,8 @@ def render_tasks(event_id: str):
                                 key=f"sp_inp_{t['id']}"
                             )
                         with col_b3:
-                            st.write("") # alinhamento vertical
-                            if st.button("💾 Gravar Atualização", key=f"btn_up_{t['id']}"):
+                            st.write("")
+                            if st.button("💾 Atualizar", key=f"btn_up_{t['id']}", use_container_width=True):
                                 user_name = st.session_state.get("user", {}).get("name", "Usuário")
                                 orig_t = next(item for item in tasks if item["id"] == t["id"])
                                 orig_t["status"] = new_st
@@ -100,12 +100,52 @@ def render_tasks(event_id: str):
                                 save_event_data(event_id, "tasks", tasks, user_name, f"Atualizou tarefa '{t.get('title')}' para '{new_st}' (Gasto: R$ {new_spent})")
                                 st.success(f"Tarefa '{t.get('title')}' atualizada!")
                                 st.rerun()
+                        with col_b4:
+                            st.write("")
+                            with st.popover("✏️ Detalhar"):
+                                st.subheader(f"Editar Tarefa: {t.get('title')}")
+                                with st.form(f"form_card_edit_task_{t['id']}"):
+                                    c_title = st.text_input("Título", value=t.get("title", ""))
+                                    c_opts = [""] + collab_names
+                                    c_cur = t.get("assigned_to", "")
+                                    c_idx = c_opts.index(c_cur) if c_cur in c_opts else 0
+                                    c_collab = st.selectbox("Responsável", options=c_opts, index=c_idx)
+                                    c_dead = st.text_input("Prazo", value=t.get("deadline", ""))
+                                    c_desc = st.text_area("Descrição Detalhada e Instruções", value=t.get("description", ""), height=100)
+                                    c_budget = st.number_input("Orçamento Estimado (R$)", value=float(t.get("budget", 0.0)), step=10.0)
+                                    c_notes = st.text_input("Observações", value=t.get("notes", ""))
+                                    if st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True):
+                                        if c_title.strip():
+                                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                            orig_t = next(item for item in tasks if item["id"] == t["id"])
+                                            orig_t["title"] = c_title.strip()
+                                            orig_t["assigned_to"] = c_collab or "Não Atribuído"
+                                            orig_t["deadline"] = c_dead.strip()
+                                            orig_t["description"] = c_desc.strip()
+                                            orig_t["budget"] = float(c_budget)
+                                            orig_t["notes"] = c_notes.strip()
+                                            save_event_data(event_id, "tasks", tasks, user_name, f"Editou e detalhou a tarefa '{c_title.strip()}'")
+                                            st.success("Tarefa atualizada com sucesso!")
+                                            st.rerun()
 
     # ========================================================
     # ABA 2: TODAS AS TAREFAS
     # ========================================================
     with tab2:
-        st.subheader("Quadro Completo de Tarefas")
+        col_t_title, col_t_sync = st.columns([2.5, 1.5])
+        with col_t_title:
+            st.subheader("Quadro Completo de Tarefas")
+        with col_t_sync:
+            if can_edit():
+                from services.event_service import sync_all_recipes_tasks
+                if st.button("🔄 Sincronizar Tarefas de Receitas", key="btn_sync_recipes_tasks_tab_all", use_container_width=True, help="Gera tarefas pendentes para todas as receitas que possuem colaboradores associados"):
+                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                    c_sync = sync_all_recipes_tasks(event_id, user_name)
+                    if c_sync > 0:
+                        st.success(f"🎉 {c_sync} tarefa(s) de receita sincronizada(s)!")
+                    else:
+                        st.info("Todas as receitas associadas já possuem tarefas correspondentes.")
+                    st.rerun()
         
         # Adicionar Nova Tarefa
         if can_edit():
@@ -162,18 +202,69 @@ def render_tasks(event_id: str):
             st.dataframe(df_tasks, use_container_width=True, hide_index=True)
 
             if can_edit():
-                with st.expander("🗑️ Excluir Tarefa"):
-                    sel_del_id = st.selectbox(
-                        "Selecione a tarefa para remover:",
-                        options=[t["id"] for t in tasks],
-                        format_func=lambda x: next((f"{t['title']} ({t.get('assigned_to')})" for t in tasks if t["id"] == x), x)
-                    )
-                    if st.button("Excluir Tarefa Selecionada", type="secondary"):
-                        user_name = st.session_state.get("user", {}).get("name", "Usuário")
-                        tasks = [t for t in tasks if t["id"] != sel_del_id]
-                        save_event_data(event_id, "tasks", tasks, user_name, f"Excluiu tarefa ID '{sel_del_id}'")
-                        st.warning("Tarefa removida com sucesso.")
-                        st.rerun()
+                col_act1, col_act2 = st.columns(2)
+                with col_act1:
+                    with st.expander("✏️ Editar e Descrever Tarefa", expanded=False):
+                        st.caption("Selecione uma tarefa para editar o título, responsável, prazo, orçamento e detalhar suas instruções.")
+                        sel_edit_id = st.selectbox(
+                            "Escolha a tarefa:",
+                            options=[t["id"] for t in tasks],
+                            format_func=lambda x: next((f"{t['title']} ({t.get('assigned_to', 'Pendente')})" for t in tasks if t["id"] == x), x),
+                            key="sel_task_to_edit"
+                        )
+                        task_to_edit = next(t for t in tasks if t["id"] == sel_edit_id)
+                        with st.form(f"form_full_edit_task_{sel_edit_id}"):
+                            te1, te2 = st.columns([2, 1])
+                            e_title = te1.text_input("Título da Tarefa *", value=task_to_edit.get("title", ""))
+                            c_opts = [""] + collab_names
+                            cur_collab = task_to_edit.get("assigned_to", "")
+                            c_idx = c_opts.index(cur_collab) if cur_collab in c_opts else 0
+                            e_collab = te2.selectbox("Colaborador Responsável *", options=c_opts, index=c_idx)
+
+                            te3, te4, te5 = st.columns(3)
+                            e_deadline = te3.text_input("Prazo / Data Limite", value=task_to_edit.get("deadline", ""))
+                            e_budget = te4.number_input("Orçamento Estimado (R$)", value=float(task_to_edit.get("budget", 0.0)), step=10.0)
+                            e_spent = te5.number_input("Gasto Real (R$)", value=float(task_to_edit.get("actual_spent", 0.0)), step=5.0)
+
+                            st_opts = ["Pendente", "Em Andamento", "Parcial", "Realizada", "Cancelada"]
+                            cur_st = task_to_edit.get("status", "Pendente")
+                            st_idx = st_opts.index(cur_st) if cur_st in st_opts else 0
+                            e_status = st.selectbox("Status da Tarefa", options=st_opts, index=st_idx)
+
+                            e_desc = st.text_area("Descrição Detalhada e Instruções de Execução", value=task_to_edit.get("description", ""), height=110)
+                            e_notes = st.text_input("Observações Adicionais", value=task_to_edit.get("notes", ""))
+
+                            if st.form_submit_button("💾 Salvar Alterações da Tarefa", type="primary", use_container_width=True):
+                                if e_title.strip():
+                                    user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                                    task_to_edit["title"] = e_title.strip()
+                                    task_to_edit["assigned_to"] = e_collab or "Não Atribuído"
+                                    task_to_edit["deadline"] = e_deadline.strip()
+                                    task_to_edit["budget"] = float(e_budget)
+                                    task_to_edit["actual_spent"] = float(e_spent)
+                                    task_to_edit["status"] = e_status
+                                    task_to_edit["description"] = e_desc.strip()
+                                    task_to_edit["notes"] = e_notes.strip()
+                                    save_event_data(event_id, "tasks", tasks, user_name, f"Editou e detalhou a tarefa '{e_title.strip()}'")
+                                    st.success(f"Tarefa '{e_title.strip()}' atualizada com sucesso!")
+                                    st.rerun()
+                                else:
+                                    st.error("O título da tarefa não pode ficar vazio.")
+
+                with col_act2:
+                    with st.expander("🗑️ Excluir Tarefa"):
+                        sel_del_id = st.selectbox(
+                            "Selecione a tarefa para remover:",
+                            options=[t["id"] for t in tasks],
+                            format_func=lambda x: next((f"{t['title']} ({t.get('assigned_to')})" for t in tasks if t["id"] == x), x),
+                            key="sel_task_to_delete"
+                        )
+                        if st.button("Confirmar Exclusão da Tarefa", type="primary", use_container_width=True):
+                            user_name = st.session_state.get("user", {}).get("name", "Usuário")
+                            tasks = [t for t in tasks if t["id"] != sel_del_id]
+                            save_event_data(event_id, "tasks", tasks, user_name, f"Excluiu tarefa ID '{sel_del_id}'")
+                            st.warning("Tarefa removida com sucesso.")
+                            st.rerun()
         else:
             st.info("Nenhuma tarefa cadastrada.")
 
