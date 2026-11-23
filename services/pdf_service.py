@@ -316,7 +316,23 @@ def generate_general_event_pdf(
     print_tasks_table_header()
 
     # Unifica tarefas cadastradas com as receitas atribuídas a colaboradores para garantir exibição completa
-    unified_tasks = list(tasks)
+    # Sincroniza o orçado das tarefas de receita com o custo calculado atual da receita (seção 4)
+    unified_tasks = []
+    for t0 in tasks:
+        t0 = dict(t0)
+        rec_match = None
+        if t0.get("recipe_id"):
+            rec_match = next((r for r in recipes if r.get("id") == t0.get("recipe_id")), None)
+        if rec_match is None:
+            t_title_l = str(t0.get("title", "")).strip().lower()
+            rec_match = next(
+                (r for r in recipes if str(r.get("name", "")).strip() and t_title_l.endswith(str(r.get("name", "")).strip().lower())
+                 and t_title_l.startswith("preparar receita")),
+                None,
+            )
+        if rec_match is not None:
+            t0["budget"] = float(rec_match.get("total_cost", 0.0) or 0.0)
+        unified_tasks.append(t0)
     existing_recipe_ids = {t.get("recipe_id") for t in unified_tasks if t.get("recipe_id")}
     existing_titles_lower = {t.get("title", "").lower() for t in unified_tasks}
 

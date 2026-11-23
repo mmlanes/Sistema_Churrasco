@@ -5,14 +5,14 @@
     "unit": "L",
     "notes": "",
     "category": "Bebidas",
-    "per_person": 0.4,
-    "unit_price": 7.0,
+    "per_person": 0.45,
+    "unit_price": 3.5,
     "supplier_id": "",
     "package_size": 2.0,
     "fixed_quantity": 0.0,
     "package_unit_name": "Garrafa retornável de 2L",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "LETÍCIA"
   },
   {
     "id": "c_a20b9044",
@@ -21,13 +21,13 @@
     "notes": "",
     "category": "Bebidas",
     "per_person": 0.1,
-    "unit_price": 12.0,
+    "unit_price": 6.0,
     "supplier_id": "",
     "package_size": 2.0,
     "fixed_quantity": 0.0,
     "package_unit_name": "Garrafa de 2L",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "LETÍCIA"
   },
   {
     "id": "c_5548d3ae",
@@ -36,28 +36,13 @@
     "notes": "",
     "category": "Bebidas",
     "per_person": 0.1,
-    "unit_price": 10.0,
+    "unit_price": 5.0,
     "supplier_id": "",
     "package_size": 2.0,
     "fixed_quantity": 0.0,
     "package_unit_name": "Embalagem 2.0 L",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
-  },
-  {
-    "id": "c_bcfe473c",
-    "name": "Suco de UVA (feito com 4L suco concentrado)  20L",
-    "unit": "L",
-    "notes": "",
-    "category": "Bebidas",
-    "per_person": 0.0,
-    "unit_price": 13.0,
-    "supplier_id": "",
-    "package_size": 1.0,
-    "fixed_quantity": 0.0,
-    "package_unit_name": "Embalagem 1.0 L",
-    "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "LETÍCIA"
   },
   {
     "id": "c_2781d65f",
@@ -80,14 +65,14 @@
     "unit": "kg",
     "notes": "",
     "category": "Carnes",
-    "per_person": 0.1,
-    "unit_price": 50.0,
+    "per_person": 0.0,
+    "unit_price": 70.0,
     "supplier_id": "",
     "package_size": 1.0,
-    "fixed_quantity": 0.0,
+    "fixed_quantity": 1.0,
     "package_unit_name": "Quilo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "Thiago Venzel"
   },
   {
     "id": "c_7e3eb4ee",
@@ -95,14 +80,14 @@
     "unit": "kg",
     "notes": "",
     "category": "Carnes",
-    "per_person": 0.1,
+    "per_person": 0.13,
     "unit_price": 17.0,
     "supplier_id": "",
     "package_size": 1.0,
     "fixed_quantity": 0.0,
     "package_unit_name": "Quilo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "Thiago Venzel"
   },
   {
     "id": "c_b445a84f",
@@ -110,14 +95,14 @@
     "unit": "kg",
     "notes": "",
     "category": "Carnes",
-    "per_person": 0.1,
+    "per_person": 0.13,
     "unit_price": 20.0,
     "supplier_id": "",
     "package_size": 1.0,
     "fixed_quantity": 0.0,
     "package_unit_name": "Quilo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "Thiago Venzel"
   },
   {
     "id": "c_8bdfb672",
@@ -125,14 +110,14 @@
     "unit": "kg",
     "notes": "",
     "category": "Carnes",
-    "per_person": 0.1,
-    "unit_price": 25.0,
+    "per_person": 0.0,
+    "unit_price": 29.98,
     "supplier_id": "",
     "package_size": 1.0,
-    "fixed_quantity": 0.0,
+    "fixed_quantity": 1.0,
     "package_unit_name": "Quilo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "Thiago Venzel"
   },
   {
     "id": "c_bd15d405",
@@ -156,13 +141,13 @@
     "notes": "",
     "category": "Gelo / Carvão",
     "per_person": 0.0,
-    "unit_price": 10.0,
+    "unit_price": 5.0,
     "supplier_id": "",
-    "package_size": 4.0,
-    "fixed_quantity": 12.0,
-    "package_unit_name": "saco com 4 kg",
+    "package_size": 1.0,
+    "fixed_quantity": 10.0,
+    "package_unit_name": "saco com 10 kg",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "Matusalém"
   },
   {
     "id": "c_c0130dfa",
@@ -174,14 +159,14 @@
     "unit_price": 16.0,
     "supplier_id": "",
     "package_size": 4.0,
-    "fixed_quantity": 4.0,
+    "fixed_quantity": 0.0,
     "package_unit_name": "Saco de 4 kg",
     "price_is_per_package": false,
     "assigned_collaborator": ""
   },
   {
     "id": "c_17d8ba80",
-    "name": "Prato 21cm (pacote com 100 unidades)",
+    "name": "Prato 21cm (pacote com 50 unidades)",
     "unit": "L",
     "notes": "",
     "category": "Descartáveis",
@@ -192,37 +177,37 @@
     "fixed_quantity": 1.0,
     "package_unit_name": "Pacote com 100 unidades",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_542438d8",
-    "name": "Copo 300ml (100 unidades)",
+    "name": "Copo 200ml (150 a 200 unidades)",
     "unit": "pct",
     "notes": "",
     "category": "Descartáveis",
     "per_person": 0.0,
-    "unit_price": 40.0,
+    "unit_price": 12.0,
     "supplier_id": "",
     "package_size": 1.0,
     "fixed_quantity": 1.0,
     "package_unit_name": "Pacote com 100 unidades",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_d06b498d",
-    "name": "Garfo (100 unidades)",
+    "name": "Garfo",
     "unit": "pct",
     "notes": "",
     "category": "Descartáveis",
     "per_person": 0.0,
-    "unit_price": 20.0,
+    "unit_price": 5.0,
     "supplier_id": "",
     "package_size": 1.0,
-    "fixed_quantity": 1.0,
-    "package_unit_name": "Pacote com 100 unidades",
+    "fixed_quantity": 2.0,
+    "package_unit_name": "Pacote com 50 unidades",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_e3e280e6",
@@ -237,22 +222,22 @@
     "fixed_quantity": 1.0,
     "package_unit_name": "Rolo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_757f3da6",
-    "name": "Guardanapo (pacote)",
+    "name": "Guardanapo (pacote 2 x 50)",
     "unit": "pct",
     "notes": "",
     "category": "Descartáveis",
     "per_person": 0.0,
-    "unit_price": 12.0,
+    "unit_price": 2.5,
     "supplier_id": "",
     "package_size": 1.0,
     "fixed_quantity": 2.0,
-    "package_unit_name": "Pacote",
+    "package_unit_name": "Pacote 50 unidades",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_e1f5d26e",
@@ -267,7 +252,7 @@
     "fixed_quantity": 1.0,
     "package_unit_name": "Rolo",
     "price_is_per_package": false,
-    "assigned_collaborator": ""
+    "assigned_collaborator": "BIANCA"
   },
   {
     "id": "c_d54b43d0",
@@ -275,7 +260,7 @@
     "unit": "un",
     "notes": "",
     "category": "Sobremesas",
-    "per_person": 2.0,
+    "per_person": 0.0,
     "unit_price": 1.5,
     "supplier_id": "",
     "package_size": 1.0,
@@ -298,5 +283,35 @@
     "package_unit_name": "Locação / Serviço",
     "price_is_per_package": false,
     "assigned_collaborator": "Comissão"
+  },
+  {
+    "id": "c_fb6edbf0",
+    "name": "Carne assada",
+    "unit": "kg",
+    "notes": "Doação do Douglas",
+    "category": "Carnes",
+    "per_person": 0.0,
+    "unit_price": 40.0,
+    "supplier_id": "",
+    "package_size": 1.0,
+    "fixed_quantity": 2.0,
+    "package_unit_name": "Kg",
+    "price_is_per_package": false,
+    "assigned_collaborator": "Douglas"
+  },
+  {
+    "id": "c_b96e3b81",
+    "name": "Coxinha da asa",
+    "unit": "kg",
+    "notes": "",
+    "category": "Carnes",
+    "per_person": 0.0,
+    "unit_price": 13.98,
+    "supplier_id": "",
+    "package_size": 1.0,
+    "fixed_quantity": 2.0,
+    "package_unit_name": "Embalagem 1.0 kg",
+    "price_is_per_package": false,
+    "assigned_collaborator": "Thiago Venzel"
   }
 ]

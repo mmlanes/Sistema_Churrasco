@@ -1032,9 +1032,831 @@
     "timestamp": "2026-11-03 12:44:10"
   },
   {
-    "timestamp": "2026-11-03 12:53:36",
     "user": "TestVerification",
     "action": "ATUALIZAR_TASKS",
-    "details": "Sincronizou tarefas com as receitas atribuídas"
+    "details": "Sincronizou tarefas com as receitas atribuídas",
+    "timestamp": "2026-11-03 12:53:36"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Editou e detalhou a tarefa 'Preparar receita: Vinagrete'",
+    "timestamp": "2026-11-03 12:58:41"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Editou e detalhou a tarefa 'Preparar receita: Farofa'",
+    "timestamp": "2026-11-03 13:00:07"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_TASKS",
+    "details": "Editou e detalhou a tarefa 'Preparar receita: Suco de UVA (20L)'",
+    "timestamp": "2026-11-03 13:02:45"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou em massa 4 participantes na categoria 'Servidor/Professor'",
+    "timestamp": "2026-11-09 11:20:15"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (30 registros)",
+    "timestamp": "2026-11-09 11:20:57"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 410.00)",
+    "timestamp": "2026-11-09 11:20:57"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:22:33"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:22:46"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:23:17"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Suco de caju concentrado' na receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:23:52"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:24:14"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:24:15"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Editou receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-09 11:24:45"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Excluiu consumível 'Suco de UVA (feito com 4L suco concentrado)  20L'",
+    "timestamp": "2026-11-09 11:26:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Registrou ENTRADA de R$ 1063.00: 'Comissão de formatura'",
+    "timestamp": "2026-11-09 11:28:09"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Excluiu lançamento de caixa ID 'csh_f6395a1c'",
+    "timestamp": "2026-11-09 11:28:18"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Registrou ENTRADA de R$ 100.00: 'Doação Torta doce (Matusalém e Laércio)'",
+    "timestamp": "2026-11-09 11:31:17"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Alcatra' (Preço: R$ 50.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:33:20"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Alcatra' (Preço: R$ 70.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:33:35"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carvão' (Preço: R$ 10.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:34:42"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Gelo' (Preço: R$ 16.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:35:04"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Adicionou consumível 'Carne assada'",
+    "timestamp": "2026-11-09 11:37:49"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:38:34"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:38:47"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:38:48"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:39:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:39:05"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 30.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:39:16"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 30.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 11:39:44"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 30.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:39:55"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 30.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:40:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 35.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:40:08"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Registrou ENTRADA de R$ 80.00: 'Carne assada (Doação Douglas)'",
+    "timestamp": "2026-11-09 11:41:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carne assada' (Preço: R$ 40.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 11:41:49"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Requeijão' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:52:05"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Requeijão' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:52:16"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Requeijão' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:52:23"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Orégano' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:53:43"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Pão francês' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:55:03"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Pão francês' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:55:11"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Pão francês' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:55:32"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Pão francês' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:55:47"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Orégano' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:56:34"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Maionese' na receita 'Pão de alho'",
+    "timestamp": "2026-11-09 11:57:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Tomate' na receita 'Vinagrete'",
+    "timestamp": "2026-11-09 11:58:01"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Cebola' na receita 'Vinagrete'",
+    "timestamp": "2026-11-09 11:58:36"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Pimentão' na receita 'Vinagrete'",
+    "timestamp": "2026-11-09 11:59:02"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Salsinha' na receita 'Vinagrete'",
+    "timestamp": "2026-11-09 11:59:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Cebolinha' na receita 'Vinagrete'",
+    "timestamp": "2026-11-09 11:59:38"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Farofa pronta' na receita 'Farofa'",
+    "timestamp": "2026-11-09 12:02:12"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Cebola' na receita 'Farofa'",
+    "timestamp": "2026-11-09 12:03:04"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Bacon' na receita 'Farofa'",
+    "timestamp": "2026-11-09 12:03:47"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Linguiça calabresa' na receita 'Farofa'",
+    "timestamp": "2026-11-09 12:04:28"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Alho picado' na receita 'Farofa'",
+    "timestamp": "2026-11-09 12:05:10"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Tulipa (meio/asa frango)' (Preço: R$ 29.98, Qtd/p: 0.1)",
+    "timestamp": "2026-11-09 12:06:46"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Tulipa (meio/asa frango)' (Preço: R$ 29.98, Qtd/p: 0.0)",
+    "timestamp": "2026-11-09 13:09:45"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Adicionou consumível 'Coxinha da asa '",
+    "timestamp": "2026-11-09 13:10:36"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou participante 'Michelle'",
+    "timestamp": "2026-11-09 14:31:37"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Copo 200ml (100 unidades)' (Preço: R$ 6.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-10 16:54:44"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guardanapo (pacote)' (Preço: R$ 2.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-10 16:56:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Garfo ' (Preço: R$ 5.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-10 16:57:41"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (31 registros)",
+    "timestamp": "2026-11-10 16:58:17"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 440.00)",
+    "timestamp": "2026-11-10 16:58:17"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Registrou ENTRADA de R$ 70.00: 'Doação Torta doce (Matusalém e Laércio)'",
+    "timestamp": "2026-11-10 17:00:37"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Excluiu lançamento de caixa ID 'csh_afc53c75'",
+    "timestamp": "2026-11-10 17:00:55"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou participante 'Leozart'",
+    "timestamp": "2026-11-12 13:38:56"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (32 registros)",
+    "timestamp": "2026-11-12 13:40:20"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 440.00)",
+    "timestamp": "2026-11-12 13:40:21"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (32 registros)",
+    "timestamp": "2026-11-16 10:56:57"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 440.00)",
+    "timestamp": "2026-11-16 10:56:58"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (32 registros)",
+    "timestamp": "2026-11-16 10:57:07"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 490.00)",
+    "timestamp": "2026-11-16 10:57:07"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Cadastrou em massa 2 participantes na categoria 'Servidor/Professor'",
+    "timestamp": "2026-11-16 10:59:00"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (34 registros)",
+    "timestamp": "2026-11-16 10:59:29"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 570.00)",
+    "timestamp": "2026-11-16 10:59:29"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 7.0, Qtd/p: 0.4)",
+    "timestamp": "2026-11-16 11:28:47"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 3.5, Qtd/p: 0.4)",
+    "timestamp": "2026-11-16 11:29:03"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-Zero' (Preço: R$ 6.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-16 11:29:21"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guaraná' (Preço: R$ 5.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-16 11:29:32"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Picolé' (Preço: R$ 1.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-16 11:35:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Bacon' na receita 'Farofa'",
+    "timestamp": "2026-11-16 11:37:02"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Tomate' na receita 'Vinagrete'",
+    "timestamp": "2026-11-16 11:38:53"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Requeijão' na receita 'Pão de alho'",
+    "timestamp": "2026-11-16 11:39:25"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:41:17"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:41:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:41:37"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:41:43"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Biscoito maisena' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:41:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Creme de leite' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:42:11"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:43:35"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Creme de leite' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:43:50"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Biscoito maisena' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:44:04"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:44:30"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-16 11:44:42"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Prato 21cm (pacote com 50 unidades)' (Preço: R$ 40.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 09:21:37"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Copo 200ml (150 a 200 unidades)' (Preço: R$ 12.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 09:22:14"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guardanapo (pacote 2 x 50)' (Preço: R$ 2.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 09:23:07"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Arroz' na receita 'Arroz'",
+    "timestamp": "2026-11-23 09:24:23"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Tomate' na receita 'Vinagrete'",
+    "timestamp": "2026-11-23 09:24:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Suco concentrado' na receita 'Suco de UVA (20L)'",
+    "timestamp": "2026-11-23 09:25:46"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carvão' (Preço: R$ 50.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 09:29:54"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 3.5, Qtd/p: 0.4)",
+    "timestamp": "2026-11-23 09:30:34"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-Zero' (Preço: R$ 6.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-23 09:30:46"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-Zero' (Preço: R$ 6.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-23 09:30:52"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guaraná' (Preço: R$ 5.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-23 09:31:04"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carvão' (Preço: R$ 50.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 09:35:21"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou participante 'Thiago Venzel'",
+    "timestamp": "2026-11-23 10:04:54"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 570.00)",
+    "timestamp": "2026-11-23 10:04:54"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_COLLABORATORS",
+    "details": "Adicionou 'Thiago Venzel' à equipe de colaboradores",
+    "timestamp": "2026-11-23 10:04:54"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Alcatra' (Preço: R$ 70.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:05:32"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Linguiça toscana' (Preço: R$ 17.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-23 10:05:51"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Pernil' (Preço: R$ 20.0, Qtd/p: 0.1)",
+    "timestamp": "2026-11-23 10:05:59"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Tulipa (meio/asa frango)' (Preço: R$ 29.98, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:06:10"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coxinha da asa' (Preço: R$ 13.98, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:06:48"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Prato 21cm (pacote com 50 unidades)' (Preço: R$ 40.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:08:28"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Copo 200ml (150 a 200 unidades)' (Preço: R$ 12.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:08:40"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Garfo' (Preço: R$ 5.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:08:50"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Papel toalha' (Preço: R$ 10.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:09:16"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Papel toalha' (Preço: R$ 10.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:09:32"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guardanapo (pacote 2 x 50)' (Preço: R$ 2.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:09:48"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Prato 21cm (pacote com 50 unidades)' (Preço: R$ 40.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:10:15"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Copo 200ml (150 a 200 unidades)' (Preço: R$ 12.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:10:30"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Garfo' (Preço: R$ 5.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:10:42"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Papel toalha' (Preço: R$ 10.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:11:18"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Guardanapo (pacote 2 x 50)' (Preço: R$ 2.5, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:11:32"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Papel alumínio (rolo)' (Preço: R$ 10.0, Qtd/p: 0.0)",
+    "timestamp": "2026-11-23 10:11:46"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_PARTICIPANTS",
+    "details": "Atualizou tabela de participantes diretamente no editor (34 registros)",
+    "timestamp": "2026-11-23 10:15:43"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CASHFLOW",
+    "details": "Sincronizou cotas dos participantes no Caixa (R$ 560.00)",
+    "timestamp": "2026-11-23 10:15:43"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Coca-cola' (Preço: R$ 3.5, Qtd/p: 0.45)",
+    "timestamp": "2026-11-23 10:20:27"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Linguiça toscana' (Preço: R$ 17.0, Qtd/p: 0.13)",
+    "timestamp": "2026-11-23 10:21:07"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Pernil' (Preço: R$ 20.0, Qtd/p: 0.13)",
+    "timestamp": "2026-11-23 10:21:25"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Pernil' (Preço: R$ 20.0, Qtd/p: 0.13)",
+    "timestamp": "2026-11-23 10:21:59"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-23 11:06:15"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Creme de leite' na receita 'Torta doce'",
+    "timestamp": "2026-11-23 11:06:35"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Leite condensado' na receita 'Torta doce'",
+    "timestamp": "2026-11-23 11:06:52"
+  },
+  {
+    "user": "Matusalém",
+    "action": "ATUALIZAR_RECIPES",
+    "details": "Atualizou ingrediente 'Tomate' na receita 'Vinagrete'",
+    "timestamp": "2026-11-23 11:32:18"
+  },
+  {
+    "timestamp": "2026-11-23 11:35:17",
+    "user": "Matusalém",
+    "action": "ATUALIZAR_CONSUMABLES",
+    "details": "Atualizou consumível 'Carvão' (Preço: R$ 5.0, Qtd/p: 0.0)"
   }
 ]

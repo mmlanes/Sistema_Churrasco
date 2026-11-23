@@ -9,7 +9,7 @@
       {
         "name": "Arroz",
         "unit": "kg",
-        "quantity": 3.0,
+        "quantity": 2.5,
         "unit_price": 4.0,
         "supplier_id": "",
         "package_size": 1.0
@@ -41,21 +41,21 @@
     "name": "Vinagrete",
     "category": "Acompanhamentos",
     "yield_unit": "kg",
-    "assigned_to": "Colaborador",
+    "assigned_to": "BIANCA",
     "ingredients": [
       {
         "name": "Tomate",
+        "quantity": 1.5,
         "unit": "kg",
-        "quantity": 2.0,
-        "unit_price": 10.0,
-        "supplier_id": "",
-        "package_size": 1.0
+        "unit_price": 16.98,
+        "package_size": 1.0,
+        "supplier_id": ""
       },
       {
         "name": "Cebola",
         "unit": "kg",
         "quantity": 0.5,
-        "unit_price": 5.0,
+        "unit_price": 9.98,
         "supplier_id": "",
         "package_size": 0.1
       },
@@ -63,7 +63,7 @@
         "name": "Pimentão",
         "unit": "kg",
         "quantity": 0.3,
-        "unit_price": 7.0,
+        "unit_price": 13.98,
         "supplier_id": "",
         "package_size": 0.1
       },
@@ -71,7 +71,7 @@
         "name": "Salsinha",
         "unit": "maço",
         "quantity": 2.0,
-        "unit_price": 2.5,
+        "unit_price": 3.98,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -79,7 +79,7 @@
         "name": "Cebolinha",
         "unit": "maço",
         "quantity": 2.0,
-        "unit_price": 2.5,
+        "unit_price": 3.89,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -102,13 +102,13 @@
     "name": "Farofa",
     "category": "Acompanhamentos",
     "yield_unit": "kg",
-    "assigned_to": "Colaborador",
+    "assigned_to": "BEATRIZ VITÓRIA",
     "ingredients": [
       {
         "name": "Farofa pronta",
         "unit": "kg",
         "quantity": 2.0,
-        "unit_price": 8.0,
+        "unit_price": 6.98,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -116,15 +116,15 @@
         "name": "Cebola",
         "unit": "kg",
         "quantity": 1.0,
-        "unit_price": 5.0,
+        "unit_price": 9.98,
         "supplier_id": "",
         "package_size": 1.0
       },
       {
         "name": "Bacon",
         "unit": "kg",
-        "quantity": 1.0,
-        "unit_price": 40.0,
+        "quantity": 0.5,
+        "unit_price": 45.0,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -132,7 +132,7 @@
         "name": "Linguiça calabresa",
         "unit": "kg",
         "quantity": 1.0,
-        "unit_price": 10.0,
+        "unit_price": 12.98,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -148,7 +148,7 @@
         "name": "Alho picado",
         "unit": "kg",
         "quantity": 0.1,
-        "unit_price": 20.0,
+        "unit_price": 15.9,
         "supplier_id": "",
         "package_size": 0.1
       }
@@ -163,12 +163,12 @@
     "name": "Pão de alho",
     "category": "Acompanhamentos",
     "yield_unit": "un",
-    "assigned_to": "Colaborador",
+    "assigned_to": "LETÍCIA",
     "ingredients": [
       {
         "name": "Pão francês",
         "unit": "un",
-        "quantity": 50.0,
+        "quantity": 55.0,
         "unit_price": 0.5,
         "supplier_id": "",
         "package_size": 1.0
@@ -184,16 +184,16 @@
       {
         "name": "Orégano",
         "unit": "kg",
-        "quantity": 0.2,
-        "unit_price": 100.0,
+        "quantity": 0.05,
+        "unit_price": 496.0,
         "supplier_id": "",
-        "package_size": 0.1
+        "package_size": 0.005
       },
       {
         "name": "Requeijão",
         "unit": "kg",
-        "quantity": 0.8,
-        "unit_price": 15.0,
+        "quantity": 0.6,
+        "unit_price": 44.9,
         "supplier_id": "",
         "package_size": 0.4
       },
@@ -201,7 +201,7 @@
         "name": "Maionese",
         "unit": "kg",
         "quantity": 1.0,
-        "unit_price": 10.0,
+        "unit_price": 10.9,
         "supplier_id": "",
         "package_size": 0.5
       }
@@ -216,15 +216,15 @@
     "name": "Suco de UVA (20L)",
     "category": "Acompanhamentos",
     "yield_unit": "L",
-    "assigned_to": "Colaborador",
+    "assigned_to": "DANIELA VITÓRIA",
     "ingredients": [
       {
-        "name": "Suco de caju concentrado",
-        "quantity": 4.0,
+        "name": "Suco concentrado",
         "unit": "L",
+        "quantity": 2.0,
         "unit_price": 13.0,
-        "package_size": 1.0,
-        "supplier_id": ""
+        "supplier_id": "",
+        "package_size": 1.0
       },
       {
         "name": "Açucar",
@@ -235,23 +235,23 @@
         "package_size": 1.0
       }
     ],
-    "instructions": "4 garrafas de suco concentrado de UVA\n2 kg de açucar\n20 litros de água\n1 galão de 20 litros\n1 bebedouro",
-    "standard_yield": 20.0,
+    "instructions": "2 garrafas de suco concentrado de UVA\n2 kg de açucar\n10 litros de água\n1 galão de 20 litros\n1 bebedouro",
+    "standard_yield": 10.0,
     "batch_multiplier": 1.0,
-    "portion_per_person": 0.9
+    "portion_per_person": 0.3
   },
   {
     "id": "rec_984b9d96",
     "name": "Torta doce",
     "category": "Acompanhamentos",
     "yield_unit": "porções",
-    "assigned_to": "Colaborador",
+    "assigned_to": "Matusalém",
     "ingredients": [
       {
         "name": "Leite condensado",
         "unit": "un",
-        "quantity": 5.0,
-        "unit_price": 7.0,
+        "quantity": 4.0,
+        "unit_price": 6.0,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -259,7 +259,7 @@
         "name": "Creme de leite",
         "unit": "un",
         "quantity": 4.0,
-        "unit_price": 6.0,
+        "unit_price": 5.0,
         "supplier_id": "",
         "package_size": 1.0
       },
@@ -274,7 +274,7 @@
       {
         "name": "Biscoito maisena",
         "unit": "pct",
-        "quantity": 5.0,
+        "quantity": 3.0,
         "unit_price": 7.0,
         "supplier_id": "",
         "package_size": 1.0
