@@ -246,7 +246,8 @@ def generate_general_event_pdf(
     # Cabeçalho Tabela
     pdf.set_font("Helvetica", "B", 8)
     pdf.set_fill_color(240, 240, 240)
-    pdf.cell(48, 6, clean_txt("Item"), border=1, fill=True)
+    pdf.cell(8, 6, clean_txt("Nº"), border=1, fill=True, align="C")
+    pdf.cell(40, 6, clean_txt("Item"), border=1, fill=True)
     pdf.cell(25, 6, clean_txt("Categoria"), border=1, fill=True)
     pdf.cell(22, 6, clean_txt("Qtd/Pessoa"), border=1, fill=True, align="C")
     pdf.cell(22, 6, clean_txt("Qtd Ajustada"), border=1, fill=True, align="C")
@@ -255,9 +256,10 @@ def generate_general_event_pdf(
     pdf.cell(20, 6, clean_txt("Total"), border=1, fill=True, align="R", new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_font("Helvetica", "", 8)
-    for c in consumables:
+    for c_idx, c in enumerate(consumables, 1):
         c_resp = str(c.get("assigned_collaborator") or c.get("assigned_to") or "Não definido").strip() or "Não definido"
-        pdf.cell(48, 5, clean_txt(c.get("name", "")[:28]), border=1)
+        pdf.cell(8, 5, clean_txt(str(c_idx)), border=1, align="C")
+        pdf.cell(40, 5, clean_txt(c.get("name", "")[:24]), border=1)
         pdf.cell(25, 5, clean_txt(c.get("category", "")[:14]), border=1)
         pdf.cell(22, 5, clean_txt(f"{c.get('per_person', 0)} {c.get('unit', '')}"), border=1, align="C")
         pdf.cell(22, 5, clean_txt(f"{c.get('adjusted_quantity', 0)} {c.get('unit', '')}"), border=1, align="C")
@@ -346,18 +348,19 @@ def generate_general_event_pdf(
 
     # Agrupa consumíveis/itens diretos por responsável, com total em R$
     cons_groups = {}
-    for c in consumables:
+    for c_idx, c in enumerate(consumables, 1):
         c_resp = str(c.get("assigned_collaborator") or c.get("assigned_to") or "Não definido").strip() or "Não definido"
-        cons_groups.setdefault(c_resp, []).append(c)
+        cons_groups.setdefault(c_resp, []).append((c_idx, c))
     for resp, items in cons_groups.items():
-        total_grp = sum(float(i.get("total_cost", 0) or 0) for i in items)
+        total_grp = sum(float(i.get("total_cost", 0) or 0) for _, i in items)
+        nums = ", ".join(str(n) for n, _ in items)
         lines = [
-            f"- {i.get('name', '')}: {i.get('adjusted_quantity', 0)} {i.get('unit', '')} x {fmt_moeda(float(i.get('unit_price', 0) or 0))} = {fmt_moeda(float(i.get('total_cost', 0) or 0))}"
-            for i in items
+            f"- Item {n} - {i.get('name', '')}: {i.get('adjusted_quantity', 0)} {i.get('unit', '')} x {fmt_moeda(float(i.get('unit_price', 0) or 0))} = {fmt_moeda(float(i.get('total_cost', 0) or 0))}"
+            for n, i in items
         ]
         unified_tasks.append({
             "id": f"tsk_cons_{resp}",
-            "title": f"Itens diretos ({len(items)})",
+            "title": f"Itens {nums} (tab. 3)",
             "assigned_to": resp,
             "deadline": event_meta.get("date", "-"),
             "status": "Pendente",
